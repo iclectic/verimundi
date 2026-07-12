@@ -44,7 +44,10 @@ class WorldScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(AppConstants.tagline, style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    AppConstants.tagline,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                   const SizedBox(height: 12),
                   SegmentedButton<FeedMode>(
                     segments: const [
@@ -66,7 +69,8 @@ class WorldScreen extends ConsumerWidget {
                     ],
                     selected: {mode},
                     onSelectionChanged: (selected) =>
-                        ref.read(feedModeProvider.notifier).state = selected.single,
+                        ref.read(feedModeProvider.notifier).state =
+                            selected.single,
                   ),
                   const SizedBox(height: 16),
                   const FilterBar(),
@@ -94,9 +98,11 @@ class WorldScreen extends ConsumerWidget {
   List<StoryCluster> _modeStories(List<StoryCluster> stories, FeedMode mode) {
     return switch (mode) {
       FeedMode.worldPulse => stories,
-      FeedMode.underreported => [...stories]
-        ..sort((a, b) => b.underreportedScore.compareTo(a.underreportedScore)),
-      FeedMode.positiveWorld => stories.where((story) => story.tone == Tone.positive).toList(),
+      FeedMode.underreported => [
+        ...stories,
+      ]..sort((a, b) => b.underreportedScore.compareTo(a.underreportedScore)),
+      FeedMode.positiveWorld =>
+        stories.where((story) => story.tone == Tone.positive).toList(),
     };
   }
 }
@@ -115,25 +121,43 @@ class _WorldContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final summary = [
-      ('Critical developments', stories.where((s) => s.severity == Severity.critical).length),
-      ('Countries with active stories', countries.where((c) => c.activeStoryCount > 0).length),
-      ('Underreported stories', stories.where((s) => s.underreportedScore > 65).length),
-      ('Positive developments', stories.where((s) => s.tone == Tone.positive).length),
+      (
+        'Critical developments',
+        stories.where((s) => s.severity == Severity.critical).length,
+      ),
+      (
+        'Countries with active stories',
+        countries.where((c) => c.activeStoryCount > 0).length,
+      ),
+      (
+        'Underreported stories',
+        stories.where((s) => s.underreportedScore > 65).length,
+      ),
+      (
+        'Positive developments',
+        stories.where((s) => s.tone == Tone.positive).length,
+      ),
     ];
     final wide = MediaQuery.sizeOf(context).width > 900;
     final map = WorldMapView(countries: countries, stories: stories);
     final leading = Column(
-      children: stories.take(4).map((story) => StoryCard(story: story)).toList(),
+      children: stories
+          .take(4)
+          .map((story) => StoryCard(story: story))
+          .toList(),
     );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (wide)
-          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Expanded(flex: 3, child: map),
-            const SizedBox(width: 16),
-            Expanded(flex: 2, child: leading),
-          ])
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(flex: 3, child: map),
+              const SizedBox(width: 16),
+              Expanded(flex: 2, child: leading),
+            ],
+          )
         else ...[
           map,
           const SizedBox(height: 16),
@@ -154,7 +178,10 @@ class _WorldContent extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(item.$1),
-                        Text('${item.$2}', style: Theme.of(context).textTheme.headlineMedium),
+                        Text(
+                          '${item.$2}',
+                          style: Theme.of(context).textTheme.headlineMedium,
+                        ),
                       ],
                     ),
                   ),
@@ -163,12 +190,16 @@ class _WorldContent extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 24),
-        Text('Regional sections', style: Theme.of(context).textTheme.titleLarge),
+        Text(
+          'Regional sections',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
         const SizedBox(height: 12),
-        for (final region in {
-          for (final story in stories) story.region,
-        })
-          _RegionSection(region: region, stories: stories.where((s) => s.region == region).take(2)),
+        for (final region in {for (final story in stories) story.region})
+          _RegionSection(
+            region: region,
+            stories: stories.where((s) => s.region == region).take(2),
+          ),
       ],
     );
   }
@@ -189,14 +220,20 @@ class _RegionSection extends StatelessWidget {
         children: [
           Row(
             children: [
-              Expanded(child: Text(region, style: Theme.of(context).textTheme.titleMedium)),
+              Expanded(
+                child: Text(
+                  region,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
               TextButton(onPressed: () {}, child: const Text('View region')),
             ],
           ),
-          for (final story in stories) Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: StoryCard(story: story),
-          ),
+          for (final story in stories)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: StoryCard(story: story),
+            ),
         ],
       ),
     );

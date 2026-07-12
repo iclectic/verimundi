@@ -22,7 +22,9 @@ class WorldMapView extends StatelessWidget {
         child: DecoratedBox(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.outlineVariant,
+            ),
             color: Theme.of(context).colorScheme.surfaceContainerHighest,
           ),
           child: LayoutBuilder(
@@ -38,15 +40,25 @@ class WorldMapView extends StatelessWidget {
                   ),
                   for (final country in countries)
                     Positioned(
-                      left: ((country.longitude + 180) / 360) * constraints.maxWidth - 18,
-                      top: ((90 - country.latitude) / 180) * constraints.maxHeight - 18,
+                      left:
+                          ((country.longitude + 180) / 360) *
+                              constraints.maxWidth -
+                          18,
+                      top:
+                          ((90 - country.latitude) / 180) *
+                              constraints.maxHeight -
+                          18,
                       child: Semantics(
                         button: true,
                         label:
                             '${country.name}, ${country.currentSeverity.name} severity, ${country.activeStoryCount} active stories',
                         child: IconButton.filledTonal(
-                          tooltip: '${country.name}: ${country.currentSeverity.name}',
-                          icon: Icon(_severityIcon(country.currentSeverity), size: 18),
+                          tooltip:
+                              '${country.name}: ${country.currentSeverity.name}',
+                          icon: Icon(
+                            _severityIcon(country.currentSeverity),
+                            size: 18,
+                          ),
                           color: AppSemanticColors.severity(
                             country.currentSeverity,
                             Theme.of(context).brightness,

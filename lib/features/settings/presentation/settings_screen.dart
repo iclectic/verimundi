@@ -15,7 +15,9 @@ class SettingsScreen extends StatelessWidget {
           ListTile(
             leading: Icon(Icons.storage),
             title: Text('Data mode'),
-            subtitle: Text('Mock data mode. NEWS_API_BASE_URL is not configured for a live backend.'),
+            subtitle: Text(
+              'Mock data mode. NEWS_API_BASE_URL is not configured for a live backend.',
+            ),
           ),
           ListTile(
             leading: Icon(Icons.smart_toy_outlined),

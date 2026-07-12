@@ -49,13 +49,19 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(story.headline, style: Theme.of(context).textTheme.headlineSmall),
+                      Text(
+                        story.headline,
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
                       const SizedBox(height: 8),
                       Wrap(
                         spacing: 8,
                         runSpacing: 4,
                         children: [
-                          SeverityPill(severity: story.severity, reason: story.severityReason),
+                          SeverityPill(
+                            severity: story.severity,
+                            reason: story.severityReason,
+                          ),
                           TonePill(tone: story.tone),
                           Chip(label: Text(story.verificationStatus.name)),
                           Chip(label: Text(story.category.name)),
@@ -74,7 +80,10 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
                           children: [
                             Text(story.shortSummary),
                             const SizedBox(height: 12),
-                            Text('Why this matters', style: Theme.of(context).textTheme.titleSmall),
+                            Text(
+                              'Why this matters',
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
                             Text(story.whyItMatters),
                             const SizedBox(height: 12),
                             Text(
@@ -102,7 +111,9 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
                                 contentPadding: EdgeInsets.zero,
                                 leading: const Icon(Icons.check_circle_outline),
                                 title: Text(fact.text),
-                                subtitle: Text('Sources: ${fact.sourceIds.join(', ')}'),
+                                subtitle: Text(
+                                  'Sources: ${fact.sourceIds.join(', ')}',
+                                ),
                               ),
                           ],
                         ),
@@ -128,15 +139,23 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
                           spacing: 12,
                           runSpacing: 12,
                           children: [
-                            _Metric(label: 'Local', value: story.localSourceCount.toString()),
-                            _Metric(label: 'Regional', value: story.regionalSourceCount.toString()),
+                            _Metric(
+                              label: 'Local',
+                              value: story.localSourceCount.toString(),
+                            ),
+                            _Metric(
+                              label: 'Regional',
+                              value: story.regionalSourceCount.toString(),
+                            ),
                             _Metric(
                               label: 'International',
                               value: story.internationalSourceCount.toString(),
                             ),
                             _Metric(
                               label: 'Underreported score',
-                              value: story.underreportedScore.toStringAsFixed(0),
+                              value: story.underreportedScore.toStringAsFixed(
+                                0,
+                              ),
                             ),
                           ],
                         ),
@@ -154,9 +173,14 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
                                   '${source.headline}\n${source.countryCode} • ${source.coverageLevel} • ${source.credibilityStatus.name} metadata • ${DateFormatters.compact(source.publishedAt)}',
                                 ),
                                 trailing: const Icon(Icons.open_in_new),
-                                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('External source: ${source.articleUrl}')),
-                                ),
+                                onTap: () =>
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'External source: ${source.articleUrl}',
+                                        ),
+                                      ),
+                                    ),
                               ),
                           ],
                         ),
@@ -168,7 +192,9 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
                           final question = _questionController.text.trim();
                           if (question.isEmpty) return;
                           setState(() => _answer = const AsyncLoading());
-                          final service = ref.read(storyQuestionServiceProvider);
+                          final service = ref.read(
+                            storyQuestionServiceProvider,
+                          );
                           final result = await AsyncValue.guard(
                             () => service.askQuestion(story, question),
                           );
@@ -188,7 +214,11 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
 }
 
 class _Section extends StatelessWidget {
-  const _Section({required this.title, required this.icon, required this.child});
+  const _Section({
+    required this.title,
+    required this.icon,
+    required this.child,
+  });
 
   final String title;
   final IconData icon;
@@ -285,7 +315,10 @@ class _QuestionBox extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('AI-generated response', style: Theme.of(context).textTheme.titleSmall),
+                      Text(
+                        'AI-generated response',
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
                       const SizedBox(height: 8),
                       Text(data.answer),
                       const SizedBox(height: 8),

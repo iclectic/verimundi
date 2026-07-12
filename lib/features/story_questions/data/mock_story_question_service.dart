@@ -22,7 +22,10 @@ class MockStoryQuestionService implements StoryQuestionService {
           'Based only on the listed demo sources, the key point is: ${story.whyItMatters} The answer is grounded in the source IDs shown below.',
       insufficientEvidence: false,
       confidenceScore: story.confidenceScore,
-      sourceIds: story.sourceArticles.take(2).map((source) => source.id).toList(),
+      sourceIds: story.sourceArticles
+          .take(2)
+          .map((source) => source.id)
+          .toList(),
       generatedAt: DateTime.now(),
     );
   }

@@ -18,7 +18,11 @@ class AsyncValueView<T> extends StatelessWidget {
     return value.when(
       data: (data) {
         if (data is Iterable && data.isEmpty) {
-          return empty ?? const _StateMessage(icon: Icons.inbox, message: 'Nothing to show yet.');
+          return empty ??
+              const _StateMessage(
+                icon: Icons.inbox,
+                message: 'Nothing to show yet.',
+              );
         }
         return builder(data);
       },

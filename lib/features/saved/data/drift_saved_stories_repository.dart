@@ -9,7 +9,9 @@ class DriftSavedStoriesRepository implements SavedStoriesRepository {
 
   @override
   Stream<List<SavedStorySnapshot>> watchSavedStories() {
-    return _database.watchSavedStories().map((rows) => rows.map(_fromRow).toList());
+    return _database.watchSavedStories().map(
+      (rows) => rows.map(_fromRow).toList(),
+    );
   }
 
   @override

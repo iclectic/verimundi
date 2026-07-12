@@ -28,9 +28,9 @@ class AppDatabase extends _$AppDatabase {
   @override
   int get schemaVersion => 1;
 
-  Stream<List<SavedStoryEntry>> watchSavedStories() =>
-      (select(savedStoryEntries)..orderBy([(t) => OrderingTerm.desc(t.savedAt)]))
-          .watch();
+  Stream<List<SavedStoryEntry>> watchSavedStories() => (select(
+    savedStoryEntries,
+  )..orderBy([(t) => OrderingTerm.desc(t.savedAt)])).watch();
 
   Future<Set<String>> savedStoryIds() async {
     final rows = await select(savedStoryEntries).get();
@@ -38,8 +38,9 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<SavedStoryEntry?> savedStory(String storyId) {
-    return (select(savedStoryEntries)..where((row) => row.storyId.equals(storyId)))
-        .getSingleOrNull();
+    return (select(
+      savedStoryEntries,
+    )..where((row) => row.storyId.equals(storyId))).getSingleOrNull();
   }
 
   Future<void> upsertSavedStory(SavedStoryEntriesCompanion entry) {
@@ -47,7 +48,9 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> deleteSavedStory(String storyId) {
-    return (delete(savedStoryEntries)..where((row) => row.storyId.equals(storyId))).go();
+    return (delete(
+      savedStoryEntries,
+    )..where((row) => row.storyId.equals(storyId))).go();
   }
 }
 

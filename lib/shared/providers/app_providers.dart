@@ -39,13 +39,17 @@ final storyQuestionServiceProvider = Provider<StoryQuestionService>((ref) {
   return MockStoryQuestionService();
 });
 
-final storyFilterProvider = StateProvider<StoryFilter>((ref) => const StoryFilter());
+final storyFilterProvider = StateProvider<StoryFilter>(
+  (ref) => const StoryFilter(),
+);
 
 final feedModeProvider = StateProvider<FeedMode>((ref) => FeedMode.worldPulse);
 
 final storiesProvider = FutureProvider<List<StoryCluster>>((ref) async {
   final repository = ref.watch(newsRepositoryProvider);
-  final savedIds = await ref.watch(savedStoriesRepositoryProvider).getSavedStoryIds();
+  final savedIds = await ref
+      .watch(savedStoriesRepositoryProvider)
+      .getSavedStoryIds();
   final filter = ref.watch(storyFilterProvider);
   final stories = await repository.getStories(filter);
   return stories
@@ -53,9 +57,13 @@ final storiesProvider = FutureProvider<List<StoryCluster>>((ref) async {
       .toList();
 });
 
-final underreportedStoriesProvider = FutureProvider<List<StoryCluster>>((ref) async {
+final underreportedStoriesProvider = FutureProvider<List<StoryCluster>>((
+  ref,
+) async {
   final repository = ref.watch(newsRepositoryProvider);
-  final savedIds = await ref.watch(savedStoriesRepositoryProvider).getSavedStoryIds();
+  final savedIds = await ref
+      .watch(savedStoriesRepositoryProvider)
+      .getSavedStoryIds();
   final stories = await repository.getUnderreportedStories();
   return stories
       .map((story) => story.copyWith(isSaved: savedIds.contains(story.id)))
@@ -64,7 +72,9 @@ final underreportedStoriesProvider = FutureProvider<List<StoryCluster>>((ref) as
 
 final positiveStoriesProvider = FutureProvider<List<StoryCluster>>((ref) async {
   final repository = ref.watch(newsRepositoryProvider);
-  final savedIds = await ref.watch(savedStoriesRepositoryProvider).getSavedStoryIds();
+  final savedIds = await ref
+      .watch(savedStoriesRepositoryProvider)
+      .getSavedStoryIds();
   final stories = await repository.getPositiveStories();
   return stories
       .map((story) => story.copyWith(isSaved: savedIds.contains(story.id)))
@@ -75,7 +85,10 @@ final countriesProvider = FutureProvider<List<CountryNewsStatus>>((ref) {
   return ref.watch(newsRepositoryProvider).getCountryStatuses();
 });
 
-final storyByIdProvider = FutureProvider.family<StoryCluster?, String>((ref, id) async {
+final storyByIdProvider = FutureProvider.family<StoryCluster?, String>((
+  ref,
+  id,
+) async {
   final story = await ref.watch(newsRepositoryProvider).getStoryById(id);
   if (story == null) return null;
   final saved = await ref.watch(savedStoriesRepositoryProvider).isSaved(id);

@@ -26,7 +26,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             navigatorKey: _worldNavigatorKey,
             routes: [
-              GoRoute(path: '/world', builder: (context, state) => const WorldScreen()),
+              GoRoute(
+                path: '/world',
+                builder: (context, state) => const WorldScreen(),
+              ),
             ],
           ),
           StatefulShellBranch(
@@ -41,13 +44,19 @@ final routerProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             navigatorKey: _positiveNavigatorKey,
             routes: [
-              GoRoute(path: '/positive', builder: (context, state) => const PositiveNewsScreen()),
+              GoRoute(
+                path: '/positive',
+                builder: (context, state) => const PositiveNewsScreen(),
+              ),
             ],
           ),
           StatefulShellBranch(
             navigatorKey: _savedNavigatorKey,
             routes: [
-              GoRoute(path: '/saved', builder: (context, state) => const SavedScreen()),
+              GoRoute(
+                path: '/saved',
+                builder: (context, state) => const SavedScreen(),
+              ),
             ],
           ),
         ],
@@ -55,7 +64,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: '/stories/:id',
-        builder: (context, state) => StoryDetailScreen(storyId: state.pathParameters['id']!),
+        builder: (context, state) =>
+            StoryDetailScreen(storyId: state.pathParameters['id']!),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
@@ -84,8 +94,14 @@ class AppShell extends StatelessWidget {
             selectedIcon: Icon(Icons.public),
             label: 'World',
           ),
-          NavigationDestination(icon: Icon(Icons.travel_explore), label: 'Underreported'),
-          NavigationDestination(icon: Icon(Icons.volunteer_activism), label: 'Positive'),
+          NavigationDestination(
+            icon: Icon(Icons.travel_explore),
+            label: 'Underreported',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.volunteer_activism),
+            label: 'Positive',
+          ),
           NavigationDestination(icon: Icon(Icons.bookmark), label: 'Saved'),
         ],
       ),

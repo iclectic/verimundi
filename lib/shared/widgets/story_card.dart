@@ -29,11 +29,18 @@ class StoryCard extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: Text(story.headline, style: Theme.of(context).textTheme.titleMedium),
+                    child: Text(
+                      story.headline,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                   ),
                   IconButton(
-                    tooltip: story.isSaved ? 'Remove saved story' : 'Save story',
-                    icon: Icon(story.isSaved ? Icons.bookmark : Icons.bookmark_border),
+                    tooltip: story.isSaved
+                        ? 'Remove saved story'
+                        : 'Save story',
+                    icon: Icon(
+                      story.isSaved ? Icons.bookmark : Icons.bookmark_border,
+                    ),
                     onPressed: () async {
                       final saved = ref.read(savedStoriesRepositoryProvider);
                       if (story.isSaved) {
@@ -54,7 +61,10 @@ class StoryCard extends ConsumerWidget {
                 spacing: 8,
                 runSpacing: 4,
                 children: [
-                  SeverityPill(severity: story.severity, reason: story.severityReason),
+                  SeverityPill(
+                    severity: story.severity,
+                    reason: story.severityReason,
+                  ),
                   TonePill(tone: story.tone),
                   Chip(label: Text(story.verificationStatus.name)),
                   Chip(label: Text('${story.sourceCount} sources')),
@@ -62,7 +72,9 @@ class StoryCard extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 8),
-              Text('${story.primaryCountryCode} • ${story.region} • ${story.category.name}'),
+              Text(
+                '${story.primaryCountryCode} • ${story.region} • ${story.category.name}',
+              ),
               const SizedBox(height: 8),
               Text(story.shortSummary),
               const SizedBox(height: 8),
@@ -72,7 +84,10 @@ class StoryCard extends ConsumerWidget {
               ),
               if (contextNote != null) ...[
                 const SizedBox(height: 8),
-                Text(contextNote!, style: Theme.of(context).textTheme.bodySmall),
+                Text(
+                  contextNote!,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
               ],
             ],
           ),

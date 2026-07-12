@@ -52,7 +52,10 @@ StoryCluster storyFixture({
     severityReason: 'Human readable reason',
     tone: tone,
     verificationStatus: verificationStatus,
-    confidenceScore: verificationStatus == VerificationStatus.insufficientEvidence ? 0.1 : 0.8,
+    confidenceScore:
+        verificationStatus == VerificationStatus.insufficientEvidence
+        ? 0.1
+        : 0.8,
     localSourceCount: local,
     regionalSourceCount: regional,
     internationalSourceCount: international,
@@ -60,7 +63,10 @@ StoryCluster storyFixture({
     positiveImpactScore: tone == Tone.positive ? 80 : 10,
     sourceArticles: sources,
     confirmedFacts: [
-      ConfirmedFact(text: 'A fact is confirmed.', sourceIds: [sources.first.id]),
+      ConfirmedFact(
+        text: 'A fact is confirmed.',
+        sourceIds: [sources.first.id],
+      ),
     ],
     uncertainties: const ['A detail remains uncertain.'],
     isDemoContent: true,

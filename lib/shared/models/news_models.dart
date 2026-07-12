@@ -3,7 +3,13 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'news_models.freezed.dart';
 part 'news_models.g.dart';
 
-enum CredibilityStatus { established, specialist, community, unverified, unknown }
+enum CredibilityStatus {
+  established,
+  specialist,
+  community,
+  unverified,
+  unknown,
+}
 
 enum StoryCategory {
   politics,

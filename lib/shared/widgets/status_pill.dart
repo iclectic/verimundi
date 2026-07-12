@@ -11,7 +11,10 @@ class SeverityPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = AppSemanticColors.severity(severity, Theme.of(context).brightness);
+    final color = AppSemanticColors.severity(
+      severity,
+      Theme.of(context).brightness,
+    );
     return Semantics(
       label: 'Severity ${severity.name}. $reason',
       child: Chip(
@@ -39,7 +42,10 @@ class TonePill extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = AppSemanticColors.tone(tone, Theme.of(context).brightness);
     return Chip(
-      avatar: Icon(tone == Tone.positive ? Icons.volunteer_activism : Icons.tonality, size: 18),
+      avatar: Icon(
+        tone == Tone.positive ? Icons.volunteer_activism : Icons.tonality,
+        size: 18,
+      ),
       label: Text(tone.name),
       side: BorderSide(color: color),
     );

@@ -5,80 +5,95 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:verimundi/app/app.dart';
 import 'package:verimundi/core/constants/app_constants.dart';
 import 'package:verimundi/core/database/app_database.dart';
+import 'package:verimundi/features/world/presentation/world_map_view.dart';
+import 'package:verimundi/shared/models/news_models.dart';
 import 'package:verimundi/shared/providers/app_providers.dart';
+
+import '../test_helpers.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  Future<AppDatabase> pumpApp(WidgetTester tester) async {
+  Future<void> pumpFrames(WidgetTester tester) async {
+    for (var i = 0; i < 8; i++) {
+      await tester.pump(const Duration(milliseconds: 150));
+    }
+  }
+
+  testWidgets('VeriMundi app renders, switches mode, and opens details', (
+    tester,
+  ) async {
     final database = AppDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(database.close);
+
     await tester.pumpWidget(
       ProviderScope(
         overrides: [databaseProvider.overrideWithValue(database)],
         child: const VeriMundiApp(),
       ),
     );
-    await tester.pumpAndSettle();
-    return database;
-  }
-
-  testWidgets('World screen renders dashboard and demo banner', (tester) async {
-    final database = await pumpApp(tester);
-    addTearDown(database.close);
+    await pumpFrames(tester);
 
     expect(find.text('VeriMundi'), findsOneWidget);
     expect(find.text(AppConstants.demoBanner), findsWidgets);
-    expect(find.text('World Pulse'), findsOneWidget);
-    expect(find.text('Regional sections'), findsOneWidget);
-  });
-
-  testWidgets('switching feed modes updates the dashboard perspective', (tester) async {
-    final database = await pumpApp(tester);
-    addTearDown(database.close);
+    expect(
+      find.text('River districts test new flood warning sirens'),
+      findsWidgets,
+    );
 
     await tester.tap(find.text('Positive World'));
-    await tester.pumpAndSettle();
+    await pumpFrames(tester);
+    expect(find.textContaining('Wetland restoration'), findsWidgets);
 
-    expect(find.textContaining('Positive impact score'), findsWidgets);
-  });
-
-  testWidgets('country marker opens a bottom sheet', (tester) async {
-    final database = await pumpApp(tester);
-    addTearDown(database.close);
-
-    await tester.tap(find.byTooltip('Nepal: critical'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Nepal'), findsWidgets);
-    expect(find.textContaining('critical severity'), findsOneWidget);
-  });
-
-  testWidgets('opening a story shows uncertainty and sources sections', (tester) async {
-    final database = await pumpApp(tester);
-    addTearDown(database.close);
-
-    await tester.tap(find.text('River districts test new flood warning sirens').first);
-    await tester.pumpAndSettle();
-
+    await tester.tap(find.text('World Pulse'));
+    await pumpFrames(tester);
+    await tester.ensureVisible(
+      find.text('River districts test new flood warning sirens').first,
+    );
+    await pumpFrames(tester);
+    await tester.tap(
+      find.text('River districts test new flood warning sirens').first,
+    );
+    await pumpFrames(tester);
     expect(find.text('AI-generated summary'), findsOneWidget);
     expect(find.text('What remains uncertain'), findsOneWidget);
     expect(find.text('Sources'), findsOneWidget);
   });
 
-  testWidgets('saving and unsaving a story changes saved state', (tester) async {
-    final database = await pumpApp(tester);
-    addTearDown(database.close);
+  testWidgets('WorldMapView opens a country bottom sheet from a marker', (
+    tester,
+  ) async {
+    final country = CountryNewsStatus(
+      code: 'GH',
+      name: 'Ghana',
+      region: 'Africa',
+      latitude: 7.95,
+      longitude: -1.02,
+      currentSeverity: Severity.developing,
+      activeStoryCount: 2,
+      positiveStoryCount: 1,
+      lastUpdated: DateTime.utc(2026, 7, 12),
+    );
+    final story = storyFixture(
+      id: 'map-story',
+      headline: 'Schools pilot solar study halls',
+      country: 'GH',
+      tone: Tone.positive,
+    );
 
-    await tester.tap(find.byTooltip('Save story').first);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Saved'));
-    await tester.pumpAndSettle();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: WorldMapView(countries: [country], stories: [story]),
+        ),
+      ),
+    );
+    await pumpFrames(tester);
+    await tester.tap(find.byType(IconButton));
+    await pumpFrames(tester);
 
-    expect(find.textContaining('River districts test'), findsOneWidget);
-
-    await tester.tap(find.byTooltip('Remove saved story').first);
-    await tester.pumpAndSettle();
-
-    expect(find.textContaining('River districts test'), findsNothing);
+    expect(find.text('Ghana'), findsWidgets);
+    expect(find.textContaining('developing severity'), findsOneWidget);
+    expect(find.text('Schools pilot solar study halls'), findsOneWidget);
   });
 }

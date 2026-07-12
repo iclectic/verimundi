@@ -15,9 +15,18 @@ class UnderreportedScoringService {
       Severity.developing => 0.58,
       Severity.general => 0.34,
     };
-    final localCoverage = ((localSourceCount + regionalSourceCount) / 10).clamp(0.0, 1.0);
-    final internationalGap = (1 - (internationalSourceCount / 6)).clamp(0.0, 1.0);
-    return ((importance * 0.45 + localCoverage * 0.30 + internationalGap * 0.25) * 100)
+    final localCoverage = ((localSourceCount + regionalSourceCount) / 10).clamp(
+      0.0,
+      1.0,
+    );
+    final internationalGap = (1 - (internationalSourceCount / 6)).clamp(
+      0.0,
+      1.0,
+    );
+    return ((importance * 0.45 +
+                localCoverage * 0.30 +
+                internationalGap * 0.25) *
+            100)
         .clamp(0, 100)
         .toDouble();
   }

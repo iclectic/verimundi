@@ -35,12 +35,14 @@ class MockNewsRepository implements NewsRepository {
   }
 
   @override
-  Future<List<CountryNewsStatus>> getCountryStatuses() async => _loadCountries();
+  Future<List<CountryNewsStatus>> getCountryStatuses() async =>
+      _loadCountries();
 
   @override
   Future<List<StoryCluster>> getUnderreportedStories() async {
     final stories = await _loadStories();
-    return [...stories]..sort((a, b) => b.underreportedScore.compareTo(a.underreportedScore));
+    return [...stories]
+      ..sort((a, b) => b.underreportedScore.compareTo(a.underreportedScore));
   }
 
   @override
@@ -71,7 +73,9 @@ class MockNewsRepository implements NewsRepository {
       final severity = Severity.values.byName(seed['severity'] as String);
       final tone = Tone.values.byName(seed['tone'] as String);
       final category = StoryCategory.values.byName(seed['category'] as String);
-      final verification = VerificationStatus.values.byName(seed['verificationStatus'] as String);
+      final verification = VerificationStatus.values.byName(
+        seed['verificationStatus'] as String,
+      );
       final local = seed['localSourceCount'] as int;
       final regional = seed['regionalSourceCount'] as int;
       final international = seed['internationalSourceCount'] as int;
@@ -119,7 +123,9 @@ class MockNewsRepository implements NewsRepository {
           category: category,
           latitude: (seed['latitude'] as num).toDouble(),
           longitude: (seed['longitude'] as num).toDouble(),
-          firstPublishedAt: now.subtract(Duration(days: index % 9 + 1, hours: index)),
+          firstPublishedAt: now.subtract(
+            Duration(days: index % 9 + 1, hours: index),
+          ),
           lastUpdatedAt: now.subtract(Duration(hours: index + 1)),
           severity: severity,
           severityReason: seed['severityReason'] as String,
@@ -138,7 +144,9 @@ class MockNewsRepository implements NewsRepository {
               sourceIds: sources.take(2).map((source) => source.id).toList(),
             ),
           ],
-          uncertainties: List<String>.from(seed['uncertainties'] as List<dynamic>),
+          uncertainties: List<String>.from(
+            seed['uncertainties'] as List<dynamic>,
+          ),
           isDemoContent: true,
         ),
       );
@@ -148,7 +156,9 @@ class MockNewsRepository implements NewsRepository {
   }
 
   Future<Map<String, dynamic>> _loadCatalog() async {
-    final content = await _bundle.loadString('assets/mock/verimundi_mock_catalog.json');
+    final content = await _bundle.loadString(
+      'assets/mock/verimundi_mock_catalog.json',
+    );
     return jsonDecode(content) as Map<String, dynamic>;
   }
 

@@ -30,9 +30,16 @@ class AsyncValueView<T> extends StatelessWidget {
       error: (error, stackTrace) => _StateMessage(
         icon: Icons.error_outline,
         message: 'Something went wrong. Pull to refresh or try again.',
-        detail: error.toString(),
+        detail: _friendlyError(error),
       ),
     );
+  }
+
+  String _friendlyError(Object error) {
+    if (error is StateError) {
+      return error.message;
+    }
+    return error.toString();
   }
 }
 

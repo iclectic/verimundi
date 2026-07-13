@@ -170,24 +170,30 @@ class MockNewsRepository implements NewsRepository {
 }
 
 class RemoteNewsRepository implements NewsRepository {
-  @override
-  Future<List<CountryNewsStatus>> getCountryStatuses() => _unimplemented();
+  RemoteNewsRepository({required String baseUrl}) : _baseUrl = baseUrl;
+
+  final String _baseUrl;
 
   @override
-  Future<List<StoryCluster>> getPositiveStories() => _unimplemented();
+  Future<List<CountryNewsStatus>> getCountryStatuses() => _unavailable();
 
   @override
-  Future<StoryCluster?> getStoryById(String id) => _unimplemented();
+  Future<List<StoryCluster>> getPositiveStories() => _unavailable();
 
   @override
-  Future<List<StoryCluster>> getStories(StoryFilter filter) => _unimplemented();
+  Future<StoryCluster?> getStoryById(String id) => _unavailable();
 
   @override
-  Future<List<StoryCluster>> getUnderreportedStories() => _unimplemented();
+  Future<List<StoryCluster>> getStories(StoryFilter filter) => _unavailable();
 
-  Future<T> _unimplemented<T>() {
-    throw UnimplementedError(
-      'RemoteNewsRepository will call the VeriMundi backend when NEWS_API_BASE_URL is set.',
+  @override
+  Future<List<StoryCluster>> getUnderreportedStories() => _unavailable();
+
+  Future<T> _unavailable<T>() {
+    return Future<T>.error(
+      StateError(
+        'NEWS_API_BASE_URL is set to "$_baseUrl", but this release does not include a live VeriMundi backend client. Use NEWS_API_BASE_URL=mock for the Play Store demo MVP.',
+      ),
     );
   }
 }

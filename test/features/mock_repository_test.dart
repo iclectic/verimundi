@@ -31,4 +31,24 @@ void main() {
     expect(positive, isNotEmpty);
     expect(positive.every((story) => story.tone == Tone.positive), isTrue);
   });
+
+  test(
+    'remote repository fails safely when backend mode is not implemented',
+    () async {
+      final repository = RemoteNewsRepository(
+        baseUrl: 'https://api.example.test',
+      );
+
+      await expectLater(
+        repository.getStories(const StoryFilter()),
+        throwsA(
+          isA<StateError>().having(
+            (error) => error.message,
+            'message',
+            contains('does not include a live VeriMundi backend client'),
+          ),
+        ),
+      );
+    },
+  );
 }

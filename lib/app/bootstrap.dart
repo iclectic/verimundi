@@ -5,5 +5,8 @@ import 'app.dart';
 
 Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+  };
   runApp(const ProviderScope(child: VeriMundiApp()));
 }

@@ -49,28 +49,31 @@ class WorldScreen extends ConsumerWidget {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 12),
-                  SegmentedButton<FeedMode>(
-                    segments: const [
-                      ButtonSegment(
-                        value: FeedMode.worldPulse,
-                        label: Text('World Pulse'),
-                        icon: Icon(Icons.public),
-                      ),
-                      ButtonSegment(
-                        value: FeedMode.underreported,
-                        label: Text('Underreported'),
-                        icon: Icon(Icons.travel_explore),
-                      ),
-                      ButtonSegment(
-                        value: FeedMode.positiveWorld,
-                        label: Text('Positive World'),
-                        icon: Icon(Icons.volunteer_activism),
-                      ),
-                    ],
-                    selected: {mode},
-                    onSelectionChanged: (selected) =>
-                        ref.read(feedModeProvider.notifier).state =
-                            selected.single,
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: SegmentedButton<FeedMode>(
+                      segments: const [
+                        ButtonSegment(
+                          value: FeedMode.worldPulse,
+                          label: Text('World Pulse'),
+                          icon: Icon(Icons.public),
+                        ),
+                        ButtonSegment(
+                          value: FeedMode.underreported,
+                          label: Text('Underreported'),
+                          icon: Icon(Icons.travel_explore),
+                        ),
+                        ButtonSegment(
+                          value: FeedMode.positiveWorld,
+                          label: Text('Positive World'),
+                          icon: Icon(Icons.volunteer_activism),
+                        ),
+                      ],
+                      selected: {mode},
+                      onSelectionChanged: (selected) =>
+                          ref.read(feedModeProvider.notifier).state =
+                              selected.single,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   const FilterBar(),

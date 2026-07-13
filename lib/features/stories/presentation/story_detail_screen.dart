@@ -87,7 +87,7 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
                             Text(story.whyItMatters),
                             const SizedBox(height: 12),
                             Text(
-                              'Generated from the listed sources. Confidence ${(story.confidenceScore * 100).toStringAsFixed(0)}%. Last generated ${DateFormatters.compact(story.lastUpdatedAt)}.',
+                              'Mock generated from the listed fictional sources. Confidence ${(story.confidenceScore * 100).toStringAsFixed(0)}%. Last generated ${DateFormatters.compact(story.lastUpdatedAt)}.',
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                             if (story.verificationStatus ==

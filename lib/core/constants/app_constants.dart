@@ -4,7 +4,9 @@ class AppConstants {
   static const appName = 'VeriMundi';
   static const tagline = 'The world beyond the usual headlines';
   static const demoBanner =
-      'Demo data: Stories shown in this build are fictional and are provided for interface testing.';
+      'Demo MVP: Stories, sources, and AI answers in this build are fictional demo content for product evaluation.';
+  static const releaseStatus =
+      'Production-ready demo MVP. No live news feed, user accounts, push notifications, or commercial GenAI provider calls are enabled.';
   static const apiBaseUrl = String.fromEnvironment(
     'NEWS_API_BASE_URL',
     defaultValue: 'mock',

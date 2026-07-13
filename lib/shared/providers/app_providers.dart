@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 import '../../core/database/app_database.dart';
+import '../../core/constants/app_constants.dart';
 import '../../core/network/api_client.dart';
 import '../../features/saved/data/drift_saved_stories_repository.dart';
 import '../../features/saved/data/saved_stories_repository.dart';
@@ -28,7 +29,9 @@ final inMemoryDatabaseProvider = Provider<AppDatabase>((ref) {
 
 final newsRepositoryProvider = Provider<NewsRepository>((ref) {
   final client = ref.watch(apiClientProvider);
-  return client.isMockMode ? MockNewsRepository() : RemoteNewsRepository();
+  return client.isMockMode
+      ? MockNewsRepository()
+      : RemoteNewsRepository(baseUrl: AppConstants.apiBaseUrl);
 });
 
 final savedStoriesRepositoryProvider = Provider<SavedStoriesRepository>((ref) {

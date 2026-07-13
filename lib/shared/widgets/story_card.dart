@@ -34,25 +34,32 @@ class StoryCard extends ConsumerWidget {
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                   ),
-                  IconButton(
-                    tooltip: story.isSaved
-                        ? 'Remove saved story'
-                        : 'Save story',
-                    icon: Icon(
-                      story.isSaved ? Icons.bookmark : Icons.bookmark_border,
+                  Semantics(
+                    label: story.isSaved
+                        ? 'Remove ${story.headline} from saved stories'
+                        : 'Save ${story.headline}',
+                    button: true,
+                    child: IconButton(
+                      tooltip: story.isSaved
+                          ? 'Remove saved story'
+                          : 'Save story',
+                      icon: Icon(
+                        story.isSaved ? Icons.bookmark : Icons.bookmark_border,
+                      ),
+                      onPressed: () async {
+                        final saved = ref.read(savedStoriesRepositoryProvider);
+                        if (story.isSaved) {
+                          await saved.remove(story.id);
+                        } else {
+                          await saved.save(story);
+                        }
+                        ref.invalidate(storiesProvider);
+                        ref.invalidate(underreportedStoriesProvider);
+                        ref.invalidate(positiveStoriesProvider);
+                        ref.invalidate(storyByIdProvider(story.id));
+                        ref.invalidate(savedSnapshotsProvider);
+                      },
                     ),
-                    onPressed: () async {
-                      final saved = ref.read(savedStoriesRepositoryProvider);
-                      if (story.isSaved) {
-                        await saved.remove(story.id);
-                      } else {
-                        await saved.save(story);
-                      }
-                      ref.invalidate(storiesProvider);
-                      ref.invalidate(underreportedStoriesProvider);
-                      ref.invalidate(positiveStoriesProvider);
-                      ref.invalidate(storyByIdProvider(story.id));
-                    },
                   ),
                 ],
               ),

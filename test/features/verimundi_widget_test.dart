@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:verimundi/app/app.dart';
 import 'package:verimundi/core/constants/app_constants.dart';
 import 'package:verimundi/core/database/app_database.dart';
+import 'package:verimundi/features/saved/presentation/saved_screen.dart';
 import 'package:verimundi/features/world/presentation/world_map_view.dart';
 import 'package:verimundi/shared/models/news_models.dart';
 import 'package:verimundi/shared/providers/app_providers.dart';
@@ -58,6 +59,55 @@ void main() {
     expect(find.text('AI-generated summary'), findsOneWidget);
     expect(find.text('What remains uncertain'), findsOneWidget);
     expect(find.text('Sources'), findsOneWidget);
+    expect(find.textContaining('Mock generated'), findsOneWidget);
+  });
+
+  testWidgets('Settings states release, data, AI, and privacy posture', (
+    tester,
+  ) async {
+    final database = AppDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(database.close);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [databaseProvider.overrideWithValue(database)],
+        child: const VeriMundiApp(),
+      ),
+    );
+    await pumpFrames(tester);
+
+    await tester.tap(find.byTooltip('Settings'));
+    await pumpFrames(tester);
+
+    expect(find.text('Release status'), findsOneWidget);
+    expect(find.textContaining('Production-ready demo MVP'), findsOneWidget);
+    expect(find.text('Data mode'), findsOneWidget);
+    expect(find.textContaining('Mock data mode'), findsOneWidget);
+    expect(find.text('AI transparency'), findsOneWidget);
+    expect(
+      find.textContaining('never stores commercial GenAI'),
+      findsOneWidget,
+    );
+    expect(find.text('Privacy'), findsOneWidget);
+    expect(
+      find.textContaining('stored locally on this device'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('Saved screen explains the empty saved state', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          savedSnapshotsProvider.overrideWith((ref) => Stream.value([])),
+        ],
+        child: const MaterialApp(home: SavedScreen()),
+      ),
+    );
+    await pumpFrames(tester);
+
+    expect(find.text('No saved stories yet.'), findsOneWidget);
+    expect(find.textContaining('Save a fictional demo story'), findsOneWidget);
   });
 
   testWidgets('WorldMapView opens a country bottom sheet from a marker', (

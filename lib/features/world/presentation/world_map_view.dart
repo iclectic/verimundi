@@ -16,7 +16,7 @@ class WorldMapView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: 'Interactive world map with country severity markers',
+      label: 'World map with country severity markers',
       child: AspectRatio(
         aspectRatio: 16 / 9,
         child: DecoratedBox(
@@ -41,13 +41,15 @@ class WorldMapView extends StatelessWidget {
                   for (final country in countries)
                     Positioned(
                       left:
-                          ((country.longitude + 180) / 360) *
-                              constraints.maxWidth -
-                          18,
+                          (((country.longitude + 180) / 360) *
+                                      constraints.maxWidth -
+                                  18)
+                              .clamp(0, constraints.maxWidth - 36),
                       top:
-                          ((90 - country.latitude) / 180) *
-                              constraints.maxHeight -
-                          18,
+                          (((90 - country.latitude) / 180) *
+                                      constraints.maxHeight -
+                                  18)
+                              .clamp(0, constraints.maxHeight - 36),
                       child: Semantics(
                         button: true,
                         label:

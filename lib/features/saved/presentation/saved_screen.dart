@@ -22,6 +22,7 @@ class SavedScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             child: AsyncValueView(
               value: saved,
+              empty: const _EmptySavedStories(),
               builder: (items) => Column(
                 children: [
                   for (final item in items)
@@ -49,6 +50,32 @@ class SavedScreen extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _EmptySavedStories extends StatelessWidget {
+  const _EmptySavedStories();
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: 'No saved stories yet',
+      child: const Padding(
+        padding: EdgeInsets.symmetric(vertical: 48, horizontal: 16),
+        child: Column(
+          children: [
+            Icon(Icons.bookmark_border, size: 48),
+            SizedBox(height: 12),
+            Text('No saved stories yet.', textAlign: TextAlign.center),
+            SizedBox(height: 8),
+            Text(
+              'Save a fictional demo story from any feed to return to it here later.',
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }

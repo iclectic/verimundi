@@ -80,7 +80,10 @@ void main() {
     await pumpFrames(tester);
 
     expect(find.text('Release status'), findsOneWidget);
-    expect(find.textContaining('Production-ready demo MVP'), findsOneWidget);
+    expect(
+      find.textContaining('silent mock fallback is forbidden'),
+      findsOneWidget,
+    );
     expect(find.text('Data mode'), findsOneWidget);
     expect(find.textContaining('Mock data mode'), findsOneWidget);
     expect(find.text('AI transparency'), findsOneWidget);
@@ -107,7 +110,7 @@ void main() {
     await pumpFrames(tester);
 
     expect(find.text('No saved stories yet.'), findsOneWidget);
-    expect(find.textContaining('Save a fictional demo story'), findsOneWidget);
+    expect(find.textContaining('Save a story from any feed'), findsOneWidget);
   });
 
   testWidgets('WorldMapView opens a country bottom sheet from a marker', (
@@ -132,18 +135,20 @@ void main() {
     );
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: WorldMapView(countries: [country], stories: [story]),
+      ProviderScope(
+        child: MaterialApp(
+          home: Scaffold(
+            body: WorldMapView(countries: [country], stories: [story]),
+          ),
         ),
       ),
     );
     await pumpFrames(tester);
-    await tester.tap(find.byType(IconButton));
+    await tester.tap(find.byTooltip('Ghana: developing, 2 stories'));
     await pumpFrames(tester);
 
     expect(find.text('Ghana'), findsWidgets);
-    expect(find.textContaining('developing severity'), findsOneWidget);
-    expect(find.text('Schools pilot solar study halls'), findsOneWidget);
+    expect(find.textContaining('Leading developments'), findsOneWidget);
+    expect(find.text('Schools pilot solar study halls'), findsWidgets);
   });
 }

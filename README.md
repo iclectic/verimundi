@@ -2,45 +2,22 @@
 
 **The world beyond the usual headlines**
 
-VeriMundi is a Flutter MVP for global news discovery focused on important stories from countries and regions that are often underrepresented in major international feeds. This build uses fictional local mock data only.
+VeriMundi is a global news-discovery application intended to help users find important, underreported, and constructive developments beyond popularity-driven international feeds.
 
-## Features
+This repository contains:
 
-- World dashboard with severity-aware country markers.
-- Global, underreported, positive, and saved story feeds.
-- Story detail pages with AI-labeled summaries, facts, uncertainty, coverage comparison, source lists, and mock story questions.
-- Transparent underreported scoring based on importance, local coverage, and international coverage gap.
-- Drift-backed saved story snapshots.
-- Material 3 light and dark themes.
+- A Flutter client (Material 3, Riverpod, GoRouter, Drift) with **mock** and **remote** modes
+- An ASP.NET Core + PostgreSQL modular monolith under `backend/`
 
-## MVP Status
+## Modes
 
-This is an initial working MVP. It does not connect to live news, live AI providers, or user accounts. All story content is fictional and marked as demo content.
+| Mode | How | Notes |
+| --- | --- | --- |
+| Mock (default) | `NEWS_API_BASE_URL=mock` or omit | Fictional catalog; safe for demos/tests |
+| Remote | `--dart-define=NEWS_API_BASE_URL=http://localhost:5080 --dart-define=APP_ENV=development` | Talks to `/v1` API |
+| Production | `APP_ENV=production` + real API URL | **Must not** use mock; misconfiguration fails loudly |
 
-## Screenshots
-
-Screenshots will be added after the first design QA pass:
-
-- World dashboard
-- Underreported feed
-- Positive World feed
-- Story detail
-- Saved stories
-
-## Architecture
-
-The app uses a feature-first clean architecture:
-
-- `app/`: bootstrap, app shell, navigation.
-- `core/`: constants, theme, database, network, utilities.
-- `features/`: world, stories, underreported, positive news, saved stories, settings, story questions.
-- `shared/`: immutable models, providers, reusable widgets.
-- `assets/mock/`: fictional MVP catalog.
-- `docs/`: product, API, and AI safety notes.
-
-Riverpod handles dependency injection and state. `go_router` handles navigation. Freezed and JSON serialization define immutable models. Drift persists saved story snapshots. Dio is present for the future backend client.
-
-## Local Setup
+## Local setup (Flutter)
 
 ```bash
 flutter pub get
@@ -51,32 +28,35 @@ flutter test
 flutter run
 ```
 
-To point a future build at a backend:
+## Local setup (backend)
+
+See `backend/README.md` and `docs/architecture/backend_decision.md`.
 
 ```bash
-flutter run --dart-define=NEWS_API_BASE_URL=https://api.example.com
+cd backend
+dotnet run --project src/VeriMundi.Api --urls http://0.0.0.0:5080
 ```
 
-The safe default is `mock`, which keeps the app in local demo mode.
+## Documentation
 
-## Mock Data
+- `docs/completion/current_state_audit.md`
+- `docs/completion/master_completion_plan.md`
+- `AGENTS.md`
+- `docs/sources/source_registry.md`
+- `docs/methodology/*`
+- `docs/api_contract.md`
 
-The catalog in `assets/mock/verimundi_mock_catalog.json` includes 20 countries across all supported regions and 30 fictional story seeds. The repository expands those seeds into story clusters with multiple source articles. No fictional story uses real deaths, active wars, real named suspects, or real allegations against identifiable people.
+## Architecture (Flutter)
 
-## AI Safety Principles
+- `app/`: bootstrap, shell, navigation
+- `core/`: constants, theme, database, network
+- `features/`: world, stories, underreported, positive, saved, settings, story questions
+- `shared/`: models, providers, widgets
+- `assets/mock/`: fictional MVP catalog
 
-The Flutter client must never call a commercial GenAI provider with a secret key. Future AI operations should run through a secure backend and summarize only supplied source material. Confirmed facts must reference source IDs, uncertainty must remain visible, and insufficient evidence must be shown plainly.
+## AI safety
 
-## Roadmap
-
-- Real multilingual news ingestion.
-- RSS and licensed news provider integrations.
-- Article clustering and deduplication.
-- Local-language translation.
-- Country-polygon choropleth map.
-- Transparent source credibility methodology.
-- User accounts and synchronized bookmarks.
-- Story update notifications.
+The Flutter client must never call a commercial GenAI provider with a secret key. Synthesis and grounded Q&A run on the backend from supplied evidence only.
 
 ## Licence
 

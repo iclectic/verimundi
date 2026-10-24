@@ -23,24 +23,26 @@ class SettingsScreen extends StatelessWidget {
             title: const Text('Data mode'),
             subtitle: Text(_dataModeCopy()),
           ),
-          const ListTile(
-            leading: Icon(Icons.smart_toy_outlined),
-            title: Text('AI transparency'),
+          ListTile(
+            leading: const Icon(Icons.smart_toy_outlined),
+            title: const Text('AI transparency'),
             subtitle: Text(
-              'Summaries and answers are mock generated from listed fictional source material. The app never stores commercial GenAI provider secrets or calls a provider directly.',
+              AppConstants.isMockApi
+                  ? 'Summaries and answers in mock mode are generated locally from listed fictional source material. The app never stores commercial GenAI provider secrets or calls a provider directly.'
+                  : 'Summaries and answers are produced by the VeriMundi backend from linked source evidence. The Flutter client never stores GenAI secrets.',
             ),
           ),
           const ListTile(
             leading: Icon(Icons.privacy_tip_outlined),
             title: Text('Privacy'),
             subtitle: Text(
-              'Saved stories are stored locally on this device. This demo build does not create accounts, send notifications, or upload saved-story data.',
+              'Saved stories are stored locally on this device. This build does not create accounts or send push notifications.',
             ),
           ),
-          const ListTile(
-            leading: Icon(Icons.info_outline),
-            title: Text(AppConstants.tagline),
-            subtitle: Text('Version 1.0.0 demo MVP'),
+          ListTile(
+            leading: const Icon(Icons.info_outline),
+            title: const Text(AppConstants.tagline),
+            subtitle: Text('Version 1.0.0 • APP_ENV=${AppConstants.appEnv}'),
           ),
         ],
       ),
@@ -52,8 +54,10 @@ class SettingsScreen extends StatelessWidget {
     return switch (client.dataMode) {
       AppDataMode.mock =>
         'Mock data mode. NEWS_API_BASE_URL is not configured for a live backend.',
-      AppDataMode.remoteUnavailable =>
-        'Remote backend URL is configured, but this release does not include a live backend client. Use mock mode for the Play Store demo MVP.',
+      AppDataMode.remote =>
+        'Remote API mode. Base URL: ${AppConstants.apiBaseUrl}. Environment: ${AppConstants.appEnv}.',
+      AppDataMode.misconfigured =>
+        'Misconfigured: production cannot use mock news.',
     };
   }
 }

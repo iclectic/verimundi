@@ -6,6 +6,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../shared/models/news_models.dart';
 import '../../../shared/providers/app_providers.dart';
 import '../../../shared/widgets/async_value_view.dart';
+import '../../../shared/widgets/cache_status_banner.dart';
 import '../../../shared/widgets/demo_banner.dart';
 import '../../../shared/widgets/filter_bar.dart';
 import '../../../shared/widgets/story_card.dart';
@@ -16,9 +17,10 @@ class WorldScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final storiesValue = ref.watch(storiesProvider);
+    final feedValue = ref.watch(storiesFeedProvider);
     final countriesValue = ref.watch(countriesProvider);
     final mode = ref.watch(feedModeProvider);
+    final page = ref.watch(feedPageProvider);
     return Scaffold(
       appBar: AppBar(
         title: const Text(AppConstants.appName),
@@ -32,7 +34,7 @@ class WorldScreen extends ConsumerWidget {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          ref.invalidate(storiesProvider);
+          ref.invalidate(storiesFeedProvider);
           ref.invalidate(countriesProvider);
         },
         child: ListView(
@@ -78,16 +80,72 @@ class WorldScreen extends ConsumerWidget {
                   const SizedBox(height: 16),
                   const FilterBar(),
                   const SizedBox(height: 16),
-                  AsyncValueView<List<StoryCluster>>(
-                    value: storiesValue,
-                    builder: (stories) => AsyncValueView(
-                      value: countriesValue,
-                      builder: (countries) => _WorldContent(
-                        stories: _modeStories(stories, mode),
-                        countries: countries,
-                        mode: mode,
-                      ),
-                    ),
+                  AsyncValueView<StoriesFeedState>(
+                    value: feedValue,
+                    builder: (feed) {
+                      final modeStories = _modeStories(feed.stories, mode);
+                      if (modeStories.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.all(24),
+                          child: Text(
+                            'No stories match these filters. Reset filters or try another region.',
+                            textAlign: TextAlign.center,
+                          ),
+                        );
+                      }
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (feed.fromCache)
+                            CacheStatusBanner(
+                              label: feed.cacheLabel,
+                              freshness: feed.freshness,
+                            ),
+                          AsyncValueView(
+                            value: countriesValue,
+                            builder: (countries) => _WorldContent(
+                              stories: modeStories,
+                              countries: countries,
+                              mode: mode,
+                              onSelectRegion: (region) {
+                                ref
+                                    .read(storyFilterProvider.notifier)
+                                    .state = ref
+                                    .read(storyFilterProvider)
+                                    .copyWith(region: region);
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 4,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              Text('Page $page'),
+                              TextButton(
+                                onPressed: page <= 1
+                                    ? null
+                                    : () =>
+                                          ref
+                                                  .read(
+                                                    feedPageProvider.notifier,
+                                                  )
+                                                  .state =
+                                              page - 1,
+                                child: const Text('Previous'),
+                              ),
+                              TextButton(
+                                onPressed: () =>
+                                    ref.read(feedPageProvider.notifier).state =
+                                        page + 1,
+                                child: const Text('Next'),
+                              ),
+                            ],
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ],
               ),
@@ -115,11 +173,13 @@ class _WorldContent extends StatelessWidget {
     required this.stories,
     required this.countries,
     required this.mode,
+    required this.onSelectRegion,
   });
 
   final List<StoryCluster> stories;
   final List<CountryNewsStatus> countries;
   final FeedMode mode;
+  final ValueChanged<String> onSelectRegion;
 
   @override
   Widget build(BuildContext context) {
@@ -202,6 +262,7 @@ class _WorldContent extends StatelessWidget {
           _RegionSection(
             region: region,
             stories: stories.where((s) => s.region == region).take(2),
+            onViewRegion: () => onSelectRegion(region),
           ),
       ],
     );
@@ -209,10 +270,15 @@ class _WorldContent extends StatelessWidget {
 }
 
 class _RegionSection extends StatelessWidget {
-  const _RegionSection({required this.region, required this.stories});
+  const _RegionSection({
+    required this.region,
+    required this.stories,
+    required this.onViewRegion,
+  });
 
   final String region;
   final Iterable<StoryCluster> stories;
+  final VoidCallback onViewRegion;
 
   @override
   Widget build(BuildContext context) {
@@ -229,7 +295,10 @@ class _RegionSection extends StatelessWidget {
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
-              TextButton(onPressed: () {}, child: const Text('View region')),
+              TextButton(
+                onPressed: onViewRegion,
+                child: const Text('View region'),
+              ),
             ],
           ),
           for (final story in stories)

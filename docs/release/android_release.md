@@ -1,12 +1,17 @@
 # Android Release Runbook
 
-This runbook covers the VeriMundi Android demo MVP release.
+This runbook covers VeriMundi Android packaging for demo (mock) and future live tracks.
+
+## Environment blocker
+
+Cloud Agent / CI images without an Android SDK cannot produce APK/AAB artefacts. See `docs/release/android_sdk_blocker.md`.
 
 ## Release Posture
 
-The current Play Store release target is a production-quality demo MVP. It uses local fictional content and should be built with `NEWS_API_BASE_URL=mock`.
+- **Demo track:** `NEWS_API_BASE_URL=mock` with honest demo labelling.
+- **Production track:** `APP_ENV=production` and a real `NEWS_API_BASE_URL`. Production must never use mock news.
 
-Do not submit a non-mock release until `RemoteNewsRepository` is implemented, policy docs are updated, and live backend behavior is tested.
+`RemoteNewsRepository` is implemented. Still required before a live Play track: rights-cleared sources, privacy legal review, signing secrets, and SDK-capable builders.
 
 ## Signing
 

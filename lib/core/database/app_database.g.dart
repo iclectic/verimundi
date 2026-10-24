@@ -498,16 +498,346 @@ class SavedStoryEntriesCompanion extends UpdateCompanion<SavedStoryEntry> {
   }
 }
 
+class $CachedFeedEntriesTable extends CachedFeedEntries
+    with TableInfo<$CachedFeedEntriesTable, CachedFeedEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CachedFeedEntriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _cacheKeyMeta = const VerificationMeta(
+    'cacheKey',
+  );
+  @override
+  late final GeneratedColumn<String> cacheKey = GeneratedColumn<String>(
+    'cache_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _payloadJsonMeta = const VerificationMeta(
+    'payloadJson',
+  );
+  @override
+  late final GeneratedColumn<String> payloadJson = GeneratedColumn<String>(
+    'payload_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _fetchedAtMeta = const VerificationMeta(
+    'fetchedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> fetchedAt = GeneratedColumn<DateTime>(
+    'fetched_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sourceModeMeta = const VerificationMeta(
+    'sourceMode',
+  );
+  @override
+  late final GeneratedColumn<String> sourceMode = GeneratedColumn<String>(
+    'source_mode',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('mock'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    cacheKey,
+    payloadJson,
+    fetchedAt,
+    sourceMode,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'cached_feed_entries';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CachedFeedEntry> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('cache_key')) {
+      context.handle(
+        _cacheKeyMeta,
+        cacheKey.isAcceptableOrUnknown(data['cache_key']!, _cacheKeyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_cacheKeyMeta);
+    }
+    if (data.containsKey('payload_json')) {
+      context.handle(
+        _payloadJsonMeta,
+        payloadJson.isAcceptableOrUnknown(
+          data['payload_json']!,
+          _payloadJsonMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_payloadJsonMeta);
+    }
+    if (data.containsKey('fetched_at')) {
+      context.handle(
+        _fetchedAtMeta,
+        fetchedAt.isAcceptableOrUnknown(data['fetched_at']!, _fetchedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_fetchedAtMeta);
+    }
+    if (data.containsKey('source_mode')) {
+      context.handle(
+        _sourceModeMeta,
+        sourceMode.isAcceptableOrUnknown(data['source_mode']!, _sourceModeMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {cacheKey};
+  @override
+  CachedFeedEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CachedFeedEntry(
+      cacheKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cache_key'],
+      )!,
+      payloadJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}payload_json'],
+      )!,
+      fetchedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}fetched_at'],
+      )!,
+      sourceMode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_mode'],
+      )!,
+    );
+  }
+
+  @override
+  $CachedFeedEntriesTable createAlias(String alias) {
+    return $CachedFeedEntriesTable(attachedDatabase, alias);
+  }
+}
+
+class CachedFeedEntry extends DataClass implements Insertable<CachedFeedEntry> {
+  final String cacheKey;
+  final String payloadJson;
+  final DateTime fetchedAt;
+  final String sourceMode;
+  const CachedFeedEntry({
+    required this.cacheKey,
+    required this.payloadJson,
+    required this.fetchedAt,
+    required this.sourceMode,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['cache_key'] = Variable<String>(cacheKey);
+    map['payload_json'] = Variable<String>(payloadJson);
+    map['fetched_at'] = Variable<DateTime>(fetchedAt);
+    map['source_mode'] = Variable<String>(sourceMode);
+    return map;
+  }
+
+  CachedFeedEntriesCompanion toCompanion(bool nullToAbsent) {
+    return CachedFeedEntriesCompanion(
+      cacheKey: Value(cacheKey),
+      payloadJson: Value(payloadJson),
+      fetchedAt: Value(fetchedAt),
+      sourceMode: Value(sourceMode),
+    );
+  }
+
+  factory CachedFeedEntry.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CachedFeedEntry(
+      cacheKey: serializer.fromJson<String>(json['cacheKey']),
+      payloadJson: serializer.fromJson<String>(json['payloadJson']),
+      fetchedAt: serializer.fromJson<DateTime>(json['fetchedAt']),
+      sourceMode: serializer.fromJson<String>(json['sourceMode']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'cacheKey': serializer.toJson<String>(cacheKey),
+      'payloadJson': serializer.toJson<String>(payloadJson),
+      'fetchedAt': serializer.toJson<DateTime>(fetchedAt),
+      'sourceMode': serializer.toJson<String>(sourceMode),
+    };
+  }
+
+  CachedFeedEntry copyWith({
+    String? cacheKey,
+    String? payloadJson,
+    DateTime? fetchedAt,
+    String? sourceMode,
+  }) => CachedFeedEntry(
+    cacheKey: cacheKey ?? this.cacheKey,
+    payloadJson: payloadJson ?? this.payloadJson,
+    fetchedAt: fetchedAt ?? this.fetchedAt,
+    sourceMode: sourceMode ?? this.sourceMode,
+  );
+  CachedFeedEntry copyWithCompanion(CachedFeedEntriesCompanion data) {
+    return CachedFeedEntry(
+      cacheKey: data.cacheKey.present ? data.cacheKey.value : this.cacheKey,
+      payloadJson: data.payloadJson.present
+          ? data.payloadJson.value
+          : this.payloadJson,
+      fetchedAt: data.fetchedAt.present ? data.fetchedAt.value : this.fetchedAt,
+      sourceMode: data.sourceMode.present
+          ? data.sourceMode.value
+          : this.sourceMode,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CachedFeedEntry(')
+          ..write('cacheKey: $cacheKey, ')
+          ..write('payloadJson: $payloadJson, ')
+          ..write('fetchedAt: $fetchedAt, ')
+          ..write('sourceMode: $sourceMode')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(cacheKey, payloadJson, fetchedAt, sourceMode);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CachedFeedEntry &&
+          other.cacheKey == this.cacheKey &&
+          other.payloadJson == this.payloadJson &&
+          other.fetchedAt == this.fetchedAt &&
+          other.sourceMode == this.sourceMode);
+}
+
+class CachedFeedEntriesCompanion extends UpdateCompanion<CachedFeedEntry> {
+  final Value<String> cacheKey;
+  final Value<String> payloadJson;
+  final Value<DateTime> fetchedAt;
+  final Value<String> sourceMode;
+  final Value<int> rowid;
+  const CachedFeedEntriesCompanion({
+    this.cacheKey = const Value.absent(),
+    this.payloadJson = const Value.absent(),
+    this.fetchedAt = const Value.absent(),
+    this.sourceMode = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CachedFeedEntriesCompanion.insert({
+    required String cacheKey,
+    required String payloadJson,
+    required DateTime fetchedAt,
+    this.sourceMode = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : cacheKey = Value(cacheKey),
+       payloadJson = Value(payloadJson),
+       fetchedAt = Value(fetchedAt);
+  static Insertable<CachedFeedEntry> custom({
+    Expression<String>? cacheKey,
+    Expression<String>? payloadJson,
+    Expression<DateTime>? fetchedAt,
+    Expression<String>? sourceMode,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (cacheKey != null) 'cache_key': cacheKey,
+      if (payloadJson != null) 'payload_json': payloadJson,
+      if (fetchedAt != null) 'fetched_at': fetchedAt,
+      if (sourceMode != null) 'source_mode': sourceMode,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CachedFeedEntriesCompanion copyWith({
+    Value<String>? cacheKey,
+    Value<String>? payloadJson,
+    Value<DateTime>? fetchedAt,
+    Value<String>? sourceMode,
+    Value<int>? rowid,
+  }) {
+    return CachedFeedEntriesCompanion(
+      cacheKey: cacheKey ?? this.cacheKey,
+      payloadJson: payloadJson ?? this.payloadJson,
+      fetchedAt: fetchedAt ?? this.fetchedAt,
+      sourceMode: sourceMode ?? this.sourceMode,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (cacheKey.present) {
+      map['cache_key'] = Variable<String>(cacheKey.value);
+    }
+    if (payloadJson.present) {
+      map['payload_json'] = Variable<String>(payloadJson.value);
+    }
+    if (fetchedAt.present) {
+      map['fetched_at'] = Variable<DateTime>(fetchedAt.value);
+    }
+    if (sourceMode.present) {
+      map['source_mode'] = Variable<String>(sourceMode.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CachedFeedEntriesCompanion(')
+          ..write('cacheKey: $cacheKey, ')
+          ..write('payloadJson: $payloadJson, ')
+          ..write('fetchedAt: $fetchedAt, ')
+          ..write('sourceMode: $sourceMode, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $SavedStoryEntriesTable savedStoryEntries =
       $SavedStoryEntriesTable(this);
+  late final $CachedFeedEntriesTable cachedFeedEntries =
+      $CachedFeedEntriesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [savedStoryEntries];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+    savedStoryEntries,
+    cachedFeedEntries,
+  ];
 }
 
 typedef $$SavedStoryEntriesTableCreateCompanionBuilder =
@@ -765,10 +1095,206 @@ typedef $$SavedStoryEntriesTableProcessedTableManager =
       SavedStoryEntry,
       PrefetchHooks Function()
     >;
+typedef $$CachedFeedEntriesTableCreateCompanionBuilder =
+    CachedFeedEntriesCompanion Function({
+      required String cacheKey,
+      required String payloadJson,
+      required DateTime fetchedAt,
+      Value<String> sourceMode,
+      Value<int> rowid,
+    });
+typedef $$CachedFeedEntriesTableUpdateCompanionBuilder =
+    CachedFeedEntriesCompanion Function({
+      Value<String> cacheKey,
+      Value<String> payloadJson,
+      Value<DateTime> fetchedAt,
+      Value<String> sourceMode,
+      Value<int> rowid,
+    });
+
+class $$CachedFeedEntriesTableFilterComposer
+    extends Composer<_$AppDatabase, $CachedFeedEntriesTable> {
+  $$CachedFeedEntriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get cacheKey => $composableBuilder(
+    column: $table.cacheKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get payloadJson => $composableBuilder(
+    column: $table.payloadJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get fetchedAt => $composableBuilder(
+    column: $table.fetchedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sourceMode => $composableBuilder(
+    column: $table.sourceMode,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$CachedFeedEntriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $CachedFeedEntriesTable> {
+  $$CachedFeedEntriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get cacheKey => $composableBuilder(
+    column: $table.cacheKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get payloadJson => $composableBuilder(
+    column: $table.payloadJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get fetchedAt => $composableBuilder(
+    column: $table.fetchedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceMode => $composableBuilder(
+    column: $table.sourceMode,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CachedFeedEntriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CachedFeedEntriesTable> {
+  $$CachedFeedEntriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get cacheKey =>
+      $composableBuilder(column: $table.cacheKey, builder: (column) => column);
+
+  GeneratedColumn<String> get payloadJson => $composableBuilder(
+    column: $table.payloadJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get fetchedAt =>
+      $composableBuilder(column: $table.fetchedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get sourceMode => $composableBuilder(
+    column: $table.sourceMode,
+    builder: (column) => column,
+  );
+}
+
+class $$CachedFeedEntriesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CachedFeedEntriesTable,
+          CachedFeedEntry,
+          $$CachedFeedEntriesTableFilterComposer,
+          $$CachedFeedEntriesTableOrderingComposer,
+          $$CachedFeedEntriesTableAnnotationComposer,
+          $$CachedFeedEntriesTableCreateCompanionBuilder,
+          $$CachedFeedEntriesTableUpdateCompanionBuilder,
+          (
+            CachedFeedEntry,
+            BaseReferences<
+              _$AppDatabase,
+              $CachedFeedEntriesTable,
+              CachedFeedEntry
+            >,
+          ),
+          CachedFeedEntry,
+          PrefetchHooks Function()
+        > {
+  $$CachedFeedEntriesTableTableManager(
+    _$AppDatabase db,
+    $CachedFeedEntriesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CachedFeedEntriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CachedFeedEntriesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CachedFeedEntriesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> cacheKey = const Value.absent(),
+                Value<String> payloadJson = const Value.absent(),
+                Value<DateTime> fetchedAt = const Value.absent(),
+                Value<String> sourceMode = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CachedFeedEntriesCompanion(
+                cacheKey: cacheKey,
+                payloadJson: payloadJson,
+                fetchedAt: fetchedAt,
+                sourceMode: sourceMode,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String cacheKey,
+                required String payloadJson,
+                required DateTime fetchedAt,
+                Value<String> sourceMode = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CachedFeedEntriesCompanion.insert(
+                cacheKey: cacheKey,
+                payloadJson: payloadJson,
+                fetchedAt: fetchedAt,
+                sourceMode: sourceMode,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$CachedFeedEntriesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CachedFeedEntriesTable,
+      CachedFeedEntry,
+      $$CachedFeedEntriesTableFilterComposer,
+      $$CachedFeedEntriesTableOrderingComposer,
+      $$CachedFeedEntriesTableAnnotationComposer,
+      $$CachedFeedEntriesTableCreateCompanionBuilder,
+      $$CachedFeedEntriesTableUpdateCompanionBuilder,
+      (
+        CachedFeedEntry,
+        BaseReferences<_$AppDatabase, $CachedFeedEntriesTable, CachedFeedEntry>,
+      ),
+      CachedFeedEntry,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
   $$SavedStoryEntriesTableTableManager get savedStoryEntries =>
       $$SavedStoryEntriesTableTableManager(_db, _db.savedStoryEntries);
+  $$CachedFeedEntriesTableTableManager get cachedFeedEntries =>
+      $$CachedFeedEntriesTableTableManager(_db, _db.cachedFeedEntries);
 }

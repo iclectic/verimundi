@@ -104,5 +104,9 @@ class StoryCard extends ConsumerWidget {
   }
 }
 
-String underreportedNote(StoryCluster story) =>
-    const UnderreportedScoringService().explanation(story);
+String underreportedNote(StoryCluster story) {
+  if (story.underreportedReason.trim().isNotEmpty) {
+    return story.underreportedReason;
+  }
+  return const UnderreportedScoringService().explanation(story);
+}

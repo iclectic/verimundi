@@ -1,0 +1,104 @@
+[
+  {
+    "sourceDomain": "fixture.verimundi.local.africa",
+    "canonicalUrl": "https://fixture.verimundi.local/africa/lagos-ferry-pilot",
+    "headline": "Lagos trials electric ferry corridors for island clinics",
+    "permittedExcerpt": "City transport planners began a limited electric-ferry pilot linking island clinics with mainland supply docks.",
+    "author": "Fixture Africa desk",
+    "publishedAt": "2026-10-20T08:00:00Z",
+    "language": "en",
+    "sourceCountryCode": "NG",
+    "region": "Africa",
+    "category": "health"
+  },
+  {
+    "sourceDomain": "fixture.verimundi.local.africa",
+    "canonicalUrl": "https://fixture.verimundi.local/africa/lagos-ferry-pilot-follow",
+    "headline": "Lagos electric ferry pilot adds clinic priority berths",
+    "permittedExcerpt": "A follow-up note describes priority berths for clinic cargo during the electric-ferry trial.",
+    "publishedAt": "2026-10-21T09:00:00Z",
+    "sourceCountryCode": "NG",
+    "region": "Africa",
+    "category": "health"
+  },
+  {
+    "sourceDomain": "fixture.verimundi.local.wire",
+    "canonicalUrl": "https://fixture.verimundi.local/wire/lagos-ferry",
+    "headline": "Nigeria city tests electric ferries for clinic logistics",
+    "permittedExcerpt": "A wire brief notes Lagos is testing electric ferries for clinic supply routes.",
+    "publishedAt": "2026-10-21T12:00:00Z",
+    "sourceCountryCode": "NG",
+    "region": "Africa",
+    "category": "health"
+  },
+  {
+    "sourceDomain": "fixture.verimundi.local.asia",
+    "canonicalUrl": "https://fixture.verimundi.local/asia/kerala-mangrove",
+    "headline": "Kerala coastal villages expand mangrove nurseries",
+    "permittedExcerpt": "Community nurseries reported expanded seedling capacity ahead of the monsoon season.",
+    "publishedAt": "2026-10-18T07:30:00Z",
+    "sourceCountryCode": "IN",
+    "region": "Asia",
+    "category": "environment"
+  },
+  {
+    "sourceDomain": "fixture.verimundi.local.europe",
+    "canonicalUrl": "https://fixture.verimundi.local/europe/baltic-grid",
+    "headline": "Baltic grid operators share winter peak forecasts",
+    "permittedExcerpt": "Operators published coordinated winter peak forecasts to support cross-border balancing.",
+    "publishedAt": "2026-10-19T11:00:00Z",
+    "sourceCountryCode": "DE",
+    "region": "Europe",
+    "category": "technology"
+  },
+  {
+    "sourceDomain": "fixture.verimundi.local.middleeast",
+    "canonicalUrl": "https://fixture.verimundi.local/middleeast/amman-water",
+    "headline": "Amman utilities trial neighbourhood water-loss sensors",
+    "permittedExcerpt": "A utility pilot is installing neighbourhood sensors to locate non-revenue water losses.",
+    "publishedAt": "2026-10-17T06:00:00Z",
+    "sourceCountryCode": "JO",
+    "region": "Middle East",
+    "category": "community"
+  },
+  {
+    "sourceDomain": "fixture.verimundi.local.na",
+    "canonicalUrl": "https://fixture.verimundi.local/na/ottawa-heat",
+    "headline": "Ottawa libraries expand cooling-centre hours",
+    "permittedExcerpt": "Public libraries extended evening hours as a heat-response measure for residents without air conditioning.",
+    "publishedAt": "2026-10-16T15:00:00Z",
+    "sourceCountryCode": "CA",
+    "region": "North America",
+    "category": "community"
+  },
+  {
+    "sourceDomain": "fixture.verimundi.local.latam",
+    "canonicalUrl": "https://fixture.verimundi.local/latam/bahia-solar",
+    "headline": "Bahia co-operative completes village solar microgrid",
+    "permittedExcerpt": "A rural co-operative reported completion of a village solar microgrid serving schools and clinics.",
+    "publishedAt": "2026-10-15T14:00:00Z",
+    "sourceCountryCode": "BR",
+    "region": "Latin America and the Caribbean",
+    "category": "technology"
+  },
+  {
+    "sourceDomain": "fixture.verimundi.local.oceania",
+    "canonicalUrl": "https://fixture.verimundi.local/oceania/wellington-quake",
+    "headline": "Wellington schools finish seismic classroom upgrades",
+    "permittedExcerpt": "A school board said the final tranche of seismic classroom upgrades is complete.",
+    "publishedAt": "2026-10-14T02:00:00Z",
+    "sourceCountryCode": "NZ",
+    "region": "Oceania",
+    "category": "education"
+  },
+  {
+    "sourceDomain": "fixture.verimundi.local.africa",
+    "canonicalUrl": "https://fixture.verimundi.local/africa/accra-buses",
+    "headline": "Accra bus corridors add priority lanes for clinic shuttles",
+    "permittedExcerpt": "Transport authorities marked priority lanes for clinic shuttles on two Accra corridors.",
+    "publishedAt": "2026-10-13T10:00:00Z",
+    "sourceCountryCode": "GH",
+    "region": "Africa",
+    "category": "health"
+  }
+]

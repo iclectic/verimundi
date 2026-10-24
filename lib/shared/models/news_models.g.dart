@@ -111,6 +111,24 @@ _ConfirmedFact _$ConfirmedFactFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$ConfirmedFactToJson(_ConfirmedFact instance) =>
     <String, dynamic>{'text': instance.text, 'sourceIds': instance.sourceIds};
 
+_DisputedClaim _$DisputedClaimFromJson(Map<String, dynamic> json) =>
+    _DisputedClaim(
+      text: json['text'] as String,
+      supportingSourceIds: (json['supportingSourceIds'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
+      disputingSourceIds: (json['disputingSourceIds'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
+    );
+
+Map<String, dynamic> _$DisputedClaimToJson(_DisputedClaim instance) =>
+    <String, dynamic>{
+      'text': instance.text,
+      'supportingSourceIds': instance.supportingSourceIds,
+      'disputingSourceIds': instance.disputingSourceIds,
+    };
+
 _StoryCluster _$StoryClusterFromJson(Map<String, dynamic> json) =>
     _StoryCluster(
       id: json['id'] as String,
@@ -140,20 +158,33 @@ _StoryCluster _$StoryClusterFromJson(Map<String, dynamic> json) =>
       regionalSourceCount: (json['regionalSourceCount'] as num).toInt(),
       internationalSourceCount: (json['internationalSourceCount'] as num)
           .toInt(),
+      independentSourceCount:
+          (json['independentSourceCount'] as num?)?.toInt() ?? 0,
       underreportedScore: (json['underreportedScore'] as num).toDouble(),
+      underreportedReason: json['underreportedReason'] as String? ?? '',
       positiveImpactScore: (json['positiveImpactScore'] as num).toDouble(),
+      rankingReason: json['rankingReason'] as String? ?? '',
       sourceArticles: (json['sourceArticles'] as List<dynamic>)
           .map((e) => NewsSource.fromJson(e as Map<String, dynamic>))
           .toList(),
       confirmedFacts: (json['confirmedFacts'] as List<dynamic>)
           .map((e) => ConfirmedFact.fromJson(e as Map<String, dynamic>))
           .toList(),
+      disputedClaims:
+          (json['disputedClaims'] as List<dynamic>?)
+              ?.map((e) => DisputedClaim.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
       uncertainties: (json['uncertainties'] as List<dynamic>)
           .map((e) => e as String)
           .toList(),
       imageUrl: json['imageUrl'] as String?,
       isSaved: json['isSaved'] as bool? ?? false,
       isDemoContent: json['isDemoContent'] as bool,
+      correctionNotice: json['correctionNotice'] as String?,
+      correctedAt: json['correctedAt'] == null
+          ? null
+          : DateTime.parse(json['correctedAt'] as String),
     );
 
 Map<String, dynamic> _$StoryClusterToJson(_StoryCluster instance) =>
@@ -180,14 +211,20 @@ Map<String, dynamic> _$StoryClusterToJson(_StoryCluster instance) =>
       'localSourceCount': instance.localSourceCount,
       'regionalSourceCount': instance.regionalSourceCount,
       'internationalSourceCount': instance.internationalSourceCount,
+      'independentSourceCount': instance.independentSourceCount,
       'underreportedScore': instance.underreportedScore,
+      'underreportedReason': instance.underreportedReason,
       'positiveImpactScore': instance.positiveImpactScore,
+      'rankingReason': instance.rankingReason,
       'sourceArticles': instance.sourceArticles,
       'confirmedFacts': instance.confirmedFacts,
+      'disputedClaims': instance.disputedClaims,
       'uncertainties': instance.uncertainties,
       'imageUrl': instance.imageUrl,
       'isSaved': instance.isSaved,
       'isDemoContent': instance.isDemoContent,
+      'correctionNotice': instance.correctionNotice,
+      'correctedAt': instance.correctedAt?.toIso8601String(),
     };
 
 const _$StoryCategoryEnumMap = {

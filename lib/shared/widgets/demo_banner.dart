@@ -7,6 +7,10 @@ class DemoBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!AppConstants.isMockApi) {
+      return const SizedBox.shrink();
+    }
+
     final scheme = Theme.of(context).colorScheme;
     return Semantics(
       label: AppConstants.demoBanner,

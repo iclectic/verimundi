@@ -1,54 +1,37 @@
-# Google Play Data Safety Worksheet
+# Google Play Data Safety worksheet
 
-Use this worksheet to complete Google Play Data Safety for the current Android demo release. Re-check it whenever permissions, SDKs, backend behavior, or telemetry changes.
+Re-check this worksheet whenever permissions, SDKs, backend behaviour, or telemetry change.
 
-## Current Release Summary
+## Release modes
 
-- **Release mode:** Demo MVP with fictional local content.
-- **Accounts:** None.
-- **Ads:** None.
-- **In-app purchases:** None.
-- **Push notifications:** None.
-- **Live backend:** Not enabled.
-- **Commercial GenAI provider calls from client:** None.
-- **Crash/analytics SDKs:** None at initial release.
-- **Local storage:** Saved-story snapshots stored in the app's local Drift/SQLite database.
+| Mode | Data Safety posture |
+| --- | --- |
+| Mock demo (`NEWS_API_BASE_URL=mock`) | Local-only content; saved snapshots and optional feed cache stay on device |
+| Remote (`NEWS_API_BASE_URL` = API) | Story metadata and optional Ask/Report payloads go to VeriMundi API |
 
-## App Data Inventory
+## Data types
 
-| Data category | Collected off device? | Shared? | Purpose | Notes |
-|---|---:|---:|---|---|
-| Account identifiers | No | No | Not applicable | No sign-in or account creation exists. |
-| Contact information | No | No | Not applicable | No email, phone, or address collection exists. |
-| Location | No | No | Not applicable | Country coordinates are fictional catalog metadata, not user location. |
-| App activity | No | No | Not applicable | No analytics SDK is enabled. |
-| App diagnostics | No | No | Not applicable | Update this if crash reporting is added. |
-| User-generated content | No | No | Not applicable | Story questions are processed by the mock service locally. |
-| Files and docs | No | No | Not applicable | No file upload or external sharing exists. |
-| Local saved stories | No | No | App functionality | Stored only on device in app-private storage. |
+| Data type | Collected? | Shared? | Notes |
+| --- | --- | --- | --- |
+| Personal info (name, email) | No | No | No accounts |
+| Location | No | No | Map uses story country coordinates, not device GPS |
+| Photos / videos | No | No | |
+| Files / docs | No | No | |
+| User-generated content | Remote only | With VeriMundi backend | Optional Ask questions and problem reports |
+| App activity / browsing | No analytics SDK today | No | |
+| Device IDs / advertising IDs | No | No | |
+| Saved story snapshots | Stored on device | No | User-initiated |
+| Feed metadata cache | Stored on device | No | Age-labelled; no full article bodies |
 
-## Permissions and Sensitive APIs
+## Security practices
 
-- `android/app/src/main/AndroidManifest.xml` declares no dangerous runtime permissions for the current release.
-- The Flutter text-processing query block is generated for platform text integration and does not collect user data by itself.
-- No background location, contacts, camera, microphone, SMS, calendar, or notification permissions are used.
+- Encryption in transit: HTTPS required for production API URLs.
+- Secrets: news/GenAI credentials stay on the backend only.
+- Users can delete saved stories in-app; uninstall clears local DB.
 
-## Third-Party Packages to Recheck
+## Checklist before production track
 
-- Flutter SDK and Material components.
-- `flutter_riverpod` for state management.
-- `go_router` for navigation.
-- `dio` for future networking; no live endpoint is enabled in demo mode.
-- `drift`, `sqlite3`, `sqlite3_flutter_libs`, `path_provider`, and `path` for local persistence.
-- `freezed_annotation`, `json_annotation`, and code generation packages for models.
-- `flutter_svg`, `intl`, and `cupertino_icons` for UI support.
-
-## Release Gate
-
-Before submitting to Google Play:
-
-1. Confirm the release build uses `NEWS_API_BASE_URL=mock` unless a real backend client and updated disclosures are complete.
-2. Confirm no analytics, crash reporting, ads, payments, or account SDKs were added without updating this worksheet.
-3. Confirm the public privacy policy URL matches `docs/privacy_policy.md`.
-4. Complete Play Console Data Safety from this worksheet and store a dated copy of the submitted answers.
-
+1. Confirm build dart-defines (`APP_ENV`, `NEWS_API_BASE_URL`) match the Play track.
+2. Update this form if any telemetry or auth is added.
+3. Complete legal review of `docs/privacy_policy.md`.
+4. Do not ship production with mock news.

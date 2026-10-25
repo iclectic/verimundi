@@ -7,6 +7,7 @@ import '../../../shared/providers/app_providers.dart';
 import '../../../shared/widgets/async_value_view.dart';
 import '../../../shared/widgets/demo_banner.dart';
 import '../../../shared/widgets/status_pill.dart';
+import '../data/remote_news_repository.dart';
 
 class StoryDetailScreen extends ConsumerStatefulWidget {
   const StoryDetailScreen({required this.storyId, super.key});
@@ -31,7 +32,39 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
   Widget build(BuildContext context) {
     final story = ref.watch(storyByIdProvider(widget.storyId));
     return Scaffold(
-      appBar: AppBar(title: const Text('Story details')),
+      appBar: AppBar(
+        title: const Text('Story details'),
+        actions: [
+          story.when(
+            data: (value) {
+              if (value == null) return const SizedBox.shrink();
+              return IconButton(
+                tooltip: value.isSaved ? 'Remove saved story' : 'Save story',
+                icon: Icon(
+                  value.isSaved ? Icons.bookmark : Icons.bookmark_border,
+                ),
+                onPressed: () async {
+                  final repo = ref.read(savedStoriesRepositoryProvider);
+                  if (value.isSaved) {
+                    await repo.remove(value.id);
+                  } else {
+                    await repo.save(value);
+                  }
+                  ref.invalidate(storyByIdProvider(widget.storyId));
+                  ref.invalidate(storiesFeedProvider);
+                },
+              );
+            },
+            loading: () => const SizedBox.shrink(),
+            error: (_, _) => const SizedBox.shrink(),
+          ),
+          IconButton(
+            tooltip: 'Report a problem',
+            icon: const Icon(Icons.flag_outlined),
+            onPressed: () => _showReportDialog(context),
+          ),
+        ],
+      ),
       body: AsyncValueView(
         value: story,
         builder: (story) {
@@ -73,6 +106,39 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
                       ),
                       const SizedBox(height: 24),
                       _Section(
+                        title: 'Timeline',
+                        icon: Icons.timeline,
+                        child: Column(
+                          children: [
+                            ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: const Icon(Icons.fiber_new),
+                              title: const Text('First published'),
+                              subtitle: Text(
+                                DateFormatters.compact(story.firstPublishedAt),
+                              ),
+                            ),
+                            ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: const Icon(Icons.auto_awesome),
+                              title: const Text('Summary generated / updated'),
+                              subtitle: Text(
+                                DateFormatters.compact(story.lastUpdatedAt),
+                              ),
+                            ),
+                            if (story.correctedAt != null)
+                              ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                leading: const Icon(Icons.edit_note),
+                                title: const Text('Correction recorded'),
+                                subtitle: Text(
+                                  DateFormatters.compact(story.correctedAt!),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      _Section(
                         title: 'AI-generated summary',
                         icon: Icons.auto_awesome,
                         child: Column(
@@ -87,9 +153,18 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
                             Text(story.whyItMatters),
                             const SizedBox(height: 12),
                             Text(
-                              'Mock generated from the listed fictional sources. Confidence ${(story.confidenceScore * 100).toStringAsFixed(0)}%. Last generated ${DateFormatters.compact(story.lastUpdatedAt)}.',
+                              story.isDemoContent
+                                  ? 'Mock generated from the listed fictional sources. Confidence ${(story.confidenceScore * 100).toStringAsFixed(0)}%. Last generated ${DateFormatters.compact(story.lastUpdatedAt)}.'
+                                  : 'AI-assisted summary grounded in listed sources. Confidence ${(story.confidenceScore * 100).toStringAsFixed(0)}%. Last generated ${DateFormatters.compact(story.lastUpdatedAt)}.',
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
+                            if (story.correctionNotice != null) ...[
+                              const SizedBox(height: 8),
+                              Text(
+                                'Correction: ${story.correctionNotice}',
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ],
                             if (story.verificationStatus ==
                                 VerificationStatus.insufficientEvidence)
                               const Padding(
@@ -118,6 +193,26 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
                           ],
                         ),
                       ),
+                      if (story.disputedClaims.isNotEmpty)
+                        _Section(
+                          title: 'Disputed or conflicting claims',
+                          icon: Icons.compare,
+                          child: Column(
+                            children: [
+                              for (final claim in story.disputedClaims)
+                                ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  leading: const Icon(
+                                    Icons.report_gmailerrorred_outlined,
+                                  ),
+                                  title: Text(claim.text),
+                                  subtitle: Text(
+                                    'Supports: ${claim.supportingSourceIds.join(', ')} • Disputes: ${claim.disputingSourceIds.join(', ')}',
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
                       _Section(
                         title: 'What remains uncertain',
                         icon: Icons.help_outline,
@@ -152,6 +247,10 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
                               value: story.internationalSourceCount.toString(),
                             ),
                             _Metric(
+                              label: 'Independent',
+                              value: story.independentSourceCount.toString(),
+                            ),
+                            _Metric(
                               label: 'Underreported score',
                               value: story.underreportedScore.toStringAsFixed(
                                 0,
@@ -160,6 +259,18 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
                           ],
                         ),
                       ),
+                      if (story.underreportedReason.isNotEmpty)
+                        _Section(
+                          title: 'Why this may be underreported',
+                          icon: Icons.travel_explore,
+                          child: Text(story.underreportedReason),
+                        ),
+                      if (story.rankingReason.isNotEmpty)
+                        _Section(
+                          title: 'Why VeriMundi ranked this story',
+                          icon: Icons.insights,
+                          child: Text(story.rankingReason),
+                        ),
                       _Section(
                         title: 'Sources',
                         icon: Icons.link,
@@ -188,6 +299,7 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
                       _QuestionBox(
                         controller: _questionController,
                         answer: _answer,
+                        isDemoContent: story.isDemoContent,
                         onAsk: () async {
                           final question = _questionController.text.trim();
                           if (question.isEmpty) return;
@@ -210,6 +322,92 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
         },
       ),
     );
+  }
+
+  Future<void> _showReportDialog(BuildContext context) async {
+    const reasons = [
+      'Incorrect summary',
+      'Unsupported claim',
+      'Outdated information',
+      'Misleading classification',
+      'Broken source',
+      'Other',
+    ];
+    var selected = reasons.first;
+    final notes = TextEditingController();
+    final submitted = await showDialog<bool>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Report a problem'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DropdownMenu<String>(
+                  initialSelection: selected,
+                  label: const Text('Reason'),
+                  onSelected: (value) {
+                    if (value != null) {
+                      setDialogState(() => selected = value);
+                    }
+                  },
+                  dropdownMenuEntries: [
+                    for (final reason in reasons)
+                      DropdownMenuEntry(value: reason, label: reason),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: notes,
+                  maxLines: 3,
+                  maxLength: 500,
+                  decoration: const InputDecoration(
+                    labelText: 'Optional details',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Submit report'),
+            ),
+          ],
+        ),
+      ),
+    );
+    final detailText = notes.text.trim();
+    notes.dispose();
+    if (submitted == true && context.mounted) {
+      final repository = ref.read(newsRepositoryProvider);
+      if (repository is RemoteNewsRepository) {
+        try {
+          await repository.reportStory(
+            widget.storyId,
+            reason: selected,
+            details: detailText,
+          );
+        } catch (_) {
+          // Local acknowledgement still shown; backend may be offline.
+        }
+      }
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Thank you. Reports help VeriMundi correct summaries and classifications.',
+            ),
+          ),
+        );
+      }
+    }
   }
 }
 
@@ -277,11 +475,13 @@ class _QuestionBox extends StatelessWidget {
     required this.controller,
     required this.answer,
     required this.onAsk,
+    required this.isDemoContent,
   });
 
   final TextEditingController controller;
   final AsyncValue<AiStoryAnswer>? answer;
   final VoidCallback onAsk;
+  final bool isDemoContent;
 
   @override
   Widget build(BuildContext context) {
@@ -304,7 +504,7 @@ class _QuestionBox extends StatelessWidget {
           FilledButton.icon(
             onPressed: onAsk,
             icon: const Icon(Icons.auto_awesome),
-            label: const Text('Ask mock AI'),
+            label: Text(isDemoContent ? 'Ask mock AI' : 'Ask VeriMundi'),
           ),
           if (answer != null) ...[
             const SizedBox(height: 12),

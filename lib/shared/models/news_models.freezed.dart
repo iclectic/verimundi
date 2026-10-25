@@ -1149,9 +1149,290 @@ as List<String>,
 
 
 /// @nodoc
+mixin _$DisputedClaim {
+
+ String get text; List<String> get supportingSourceIds; List<String> get disputingSourceIds;
+/// Create a copy of DisputedClaim
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$DisputedClaimCopyWith<DisputedClaim> get copyWith => _$DisputedClaimCopyWithImpl<DisputedClaim>(this as DisputedClaim, _$identity);
+
+  /// Serializes this DisputedClaim to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DisputedClaim&&(identical(other.text, text) || other.text == text)&&const DeepCollectionEquality().equals(other.supportingSourceIds, supportingSourceIds)&&const DeepCollectionEquality().equals(other.disputingSourceIds, disputingSourceIds));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,text,const DeepCollectionEquality().hash(supportingSourceIds),const DeepCollectionEquality().hash(disputingSourceIds));
+
+@override
+String toString() {
+  return 'DisputedClaim(text: $text, supportingSourceIds: $supportingSourceIds, disputingSourceIds: $disputingSourceIds)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $DisputedClaimCopyWith<$Res>  {
+  factory $DisputedClaimCopyWith(DisputedClaim value, $Res Function(DisputedClaim) _then) = _$DisputedClaimCopyWithImpl;
+@useResult
+$Res call({
+ String text, List<String> supportingSourceIds, List<String> disputingSourceIds
+});
+
+
+
+
+}
+/// @nodoc
+class _$DisputedClaimCopyWithImpl<$Res>
+    implements $DisputedClaimCopyWith<$Res> {
+  _$DisputedClaimCopyWithImpl(this._self, this._then);
+
+  final DisputedClaim _self;
+  final $Res Function(DisputedClaim) _then;
+
+/// Create a copy of DisputedClaim
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? text = null,Object? supportingSourceIds = null,Object? disputingSourceIds = null,}) {
+  return _then(_self.copyWith(
+text: null == text ? _self.text : text // ignore: cast_nullable_to_non_nullable
+as String,supportingSourceIds: null == supportingSourceIds ? _self.supportingSourceIds : supportingSourceIds // ignore: cast_nullable_to_non_nullable
+as List<String>,disputingSourceIds: null == disputingSourceIds ? _self.disputingSourceIds : disputingSourceIds // ignore: cast_nullable_to_non_nullable
+as List<String>,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [DisputedClaim].
+extension DisputedClaimPatterns on DisputedClaim {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _DisputedClaim value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _DisputedClaim() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _DisputedClaim value)  $default,){
+final _that = this;
+switch (_that) {
+case _DisputedClaim():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _DisputedClaim value)?  $default,){
+final _that = this;
+switch (_that) {
+case _DisputedClaim() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String text,  List<String> supportingSourceIds,  List<String> disputingSourceIds)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _DisputedClaim() when $default != null:
+return $default(_that.text,_that.supportingSourceIds,_that.disputingSourceIds);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String text,  List<String> supportingSourceIds,  List<String> disputingSourceIds)  $default,) {final _that = this;
+switch (_that) {
+case _DisputedClaim():
+return $default(_that.text,_that.supportingSourceIds,_that.disputingSourceIds);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String text,  List<String> supportingSourceIds,  List<String> disputingSourceIds)?  $default,) {final _that = this;
+switch (_that) {
+case _DisputedClaim() when $default != null:
+return $default(_that.text,_that.supportingSourceIds,_that.disputingSourceIds);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _DisputedClaim implements DisputedClaim {
+  const _DisputedClaim({required this.text, required final  List<String> supportingSourceIds, required final  List<String> disputingSourceIds}): _supportingSourceIds = supportingSourceIds,_disputingSourceIds = disputingSourceIds;
+  factory _DisputedClaim.fromJson(Map<String, dynamic> json) => _$DisputedClaimFromJson(json);
+
+@override final  String text;
+ final  List<String> _supportingSourceIds;
+@override List<String> get supportingSourceIds {
+  if (_supportingSourceIds is EqualUnmodifiableListView) return _supportingSourceIds;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_supportingSourceIds);
+}
+
+ final  List<String> _disputingSourceIds;
+@override List<String> get disputingSourceIds {
+  if (_disputingSourceIds is EqualUnmodifiableListView) return _disputingSourceIds;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_disputingSourceIds);
+}
+
+
+/// Create a copy of DisputedClaim
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$DisputedClaimCopyWith<_DisputedClaim> get copyWith => __$DisputedClaimCopyWithImpl<_DisputedClaim>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$DisputedClaimToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DisputedClaim&&(identical(other.text, text) || other.text == text)&&const DeepCollectionEquality().equals(other._supportingSourceIds, _supportingSourceIds)&&const DeepCollectionEquality().equals(other._disputingSourceIds, _disputingSourceIds));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,text,const DeepCollectionEquality().hash(_supportingSourceIds),const DeepCollectionEquality().hash(_disputingSourceIds));
+
+@override
+String toString() {
+  return 'DisputedClaim(text: $text, supportingSourceIds: $supportingSourceIds, disputingSourceIds: $disputingSourceIds)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$DisputedClaimCopyWith<$Res> implements $DisputedClaimCopyWith<$Res> {
+  factory _$DisputedClaimCopyWith(_DisputedClaim value, $Res Function(_DisputedClaim) _then) = __$DisputedClaimCopyWithImpl;
+@override @useResult
+$Res call({
+ String text, List<String> supportingSourceIds, List<String> disputingSourceIds
+});
+
+
+
+
+}
+/// @nodoc
+class __$DisputedClaimCopyWithImpl<$Res>
+    implements _$DisputedClaimCopyWith<$Res> {
+  __$DisputedClaimCopyWithImpl(this._self, this._then);
+
+  final _DisputedClaim _self;
+  final $Res Function(_DisputedClaim) _then;
+
+/// Create a copy of DisputedClaim
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? text = null,Object? supportingSourceIds = null,Object? disputingSourceIds = null,}) {
+  return _then(_DisputedClaim(
+text: null == text ? _self.text : text // ignore: cast_nullable_to_non_nullable
+as String,supportingSourceIds: null == supportingSourceIds ? _self._supportingSourceIds : supportingSourceIds // ignore: cast_nullable_to_non_nullable
+as List<String>,disputingSourceIds: null == disputingSourceIds ? _self._disputingSourceIds : disputingSourceIds // ignore: cast_nullable_to_non_nullable
+as List<String>,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
 mixin _$StoryCluster {
 
- String get id; String get headline; String get shortSummary; String get fullSummary; String get whyItMatters; List<String> get countryCodes; String get primaryCountryCode; String get region; StoryCategory get category; double get latitude; double get longitude; DateTime get firstPublishedAt; DateTime get lastUpdatedAt; Severity get severity; String get severityReason; Tone get tone; VerificationStatus get verificationStatus; double get confidenceScore; int get localSourceCount; int get regionalSourceCount; int get internationalSourceCount; double get underreportedScore; double get positiveImpactScore; List<NewsSource> get sourceArticles; List<ConfirmedFact> get confirmedFacts; List<String> get uncertainties; String? get imageUrl; bool get isSaved; bool get isDemoContent;
+ String get id; String get headline; String get shortSummary; String get fullSummary; String get whyItMatters; List<String> get countryCodes; String get primaryCountryCode; String get region; StoryCategory get category; double get latitude; double get longitude; DateTime get firstPublishedAt; DateTime get lastUpdatedAt; Severity get severity; String get severityReason; Tone get tone; VerificationStatus get verificationStatus; double get confidenceScore; int get localSourceCount; int get regionalSourceCount; int get internationalSourceCount; int get independentSourceCount; double get underreportedScore; String get underreportedReason; double get positiveImpactScore; String get rankingReason; List<NewsSource> get sourceArticles; List<ConfirmedFact> get confirmedFacts; List<DisputedClaim> get disputedClaims; List<String> get uncertainties; String? get imageUrl; bool get isSaved; bool get isDemoContent; String? get correctionNotice; DateTime? get correctedAt;
 /// Create a copy of StoryCluster
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1164,16 +1445,16 @@ $StoryClusterCopyWith<StoryCluster> get copyWith => _$StoryClusterCopyWithImpl<S
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is StoryCluster&&(identical(other.id, id) || other.id == id)&&(identical(other.headline, headline) || other.headline == headline)&&(identical(other.shortSummary, shortSummary) || other.shortSummary == shortSummary)&&(identical(other.fullSummary, fullSummary) || other.fullSummary == fullSummary)&&(identical(other.whyItMatters, whyItMatters) || other.whyItMatters == whyItMatters)&&const DeepCollectionEquality().equals(other.countryCodes, countryCodes)&&(identical(other.primaryCountryCode, primaryCountryCode) || other.primaryCountryCode == primaryCountryCode)&&(identical(other.region, region) || other.region == region)&&(identical(other.category, category) || other.category == category)&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude)&&(identical(other.firstPublishedAt, firstPublishedAt) || other.firstPublishedAt == firstPublishedAt)&&(identical(other.lastUpdatedAt, lastUpdatedAt) || other.lastUpdatedAt == lastUpdatedAt)&&(identical(other.severity, severity) || other.severity == severity)&&(identical(other.severityReason, severityReason) || other.severityReason == severityReason)&&(identical(other.tone, tone) || other.tone == tone)&&(identical(other.verificationStatus, verificationStatus) || other.verificationStatus == verificationStatus)&&(identical(other.confidenceScore, confidenceScore) || other.confidenceScore == confidenceScore)&&(identical(other.localSourceCount, localSourceCount) || other.localSourceCount == localSourceCount)&&(identical(other.regionalSourceCount, regionalSourceCount) || other.regionalSourceCount == regionalSourceCount)&&(identical(other.internationalSourceCount, internationalSourceCount) || other.internationalSourceCount == internationalSourceCount)&&(identical(other.underreportedScore, underreportedScore) || other.underreportedScore == underreportedScore)&&(identical(other.positiveImpactScore, positiveImpactScore) || other.positiveImpactScore == positiveImpactScore)&&const DeepCollectionEquality().equals(other.sourceArticles, sourceArticles)&&const DeepCollectionEquality().equals(other.confirmedFacts, confirmedFacts)&&const DeepCollectionEquality().equals(other.uncertainties, uncertainties)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.isSaved, isSaved) || other.isSaved == isSaved)&&(identical(other.isDemoContent, isDemoContent) || other.isDemoContent == isDemoContent));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is StoryCluster&&(identical(other.id, id) || other.id == id)&&(identical(other.headline, headline) || other.headline == headline)&&(identical(other.shortSummary, shortSummary) || other.shortSummary == shortSummary)&&(identical(other.fullSummary, fullSummary) || other.fullSummary == fullSummary)&&(identical(other.whyItMatters, whyItMatters) || other.whyItMatters == whyItMatters)&&const DeepCollectionEquality().equals(other.countryCodes, countryCodes)&&(identical(other.primaryCountryCode, primaryCountryCode) || other.primaryCountryCode == primaryCountryCode)&&(identical(other.region, region) || other.region == region)&&(identical(other.category, category) || other.category == category)&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude)&&(identical(other.firstPublishedAt, firstPublishedAt) || other.firstPublishedAt == firstPublishedAt)&&(identical(other.lastUpdatedAt, lastUpdatedAt) || other.lastUpdatedAt == lastUpdatedAt)&&(identical(other.severity, severity) || other.severity == severity)&&(identical(other.severityReason, severityReason) || other.severityReason == severityReason)&&(identical(other.tone, tone) || other.tone == tone)&&(identical(other.verificationStatus, verificationStatus) || other.verificationStatus == verificationStatus)&&(identical(other.confidenceScore, confidenceScore) || other.confidenceScore == confidenceScore)&&(identical(other.localSourceCount, localSourceCount) || other.localSourceCount == localSourceCount)&&(identical(other.regionalSourceCount, regionalSourceCount) || other.regionalSourceCount == regionalSourceCount)&&(identical(other.internationalSourceCount, internationalSourceCount) || other.internationalSourceCount == internationalSourceCount)&&(identical(other.independentSourceCount, independentSourceCount) || other.independentSourceCount == independentSourceCount)&&(identical(other.underreportedScore, underreportedScore) || other.underreportedScore == underreportedScore)&&(identical(other.underreportedReason, underreportedReason) || other.underreportedReason == underreportedReason)&&(identical(other.positiveImpactScore, positiveImpactScore) || other.positiveImpactScore == positiveImpactScore)&&(identical(other.rankingReason, rankingReason) || other.rankingReason == rankingReason)&&const DeepCollectionEquality().equals(other.sourceArticles, sourceArticles)&&const DeepCollectionEquality().equals(other.confirmedFacts, confirmedFacts)&&const DeepCollectionEquality().equals(other.disputedClaims, disputedClaims)&&const DeepCollectionEquality().equals(other.uncertainties, uncertainties)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.isSaved, isSaved) || other.isSaved == isSaved)&&(identical(other.isDemoContent, isDemoContent) || other.isDemoContent == isDemoContent)&&(identical(other.correctionNotice, correctionNotice) || other.correctionNotice == correctionNotice)&&(identical(other.correctedAt, correctedAt) || other.correctedAt == correctedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,headline,shortSummary,fullSummary,whyItMatters,const DeepCollectionEquality().hash(countryCodes),primaryCountryCode,region,category,latitude,longitude,firstPublishedAt,lastUpdatedAt,severity,severityReason,tone,verificationStatus,confidenceScore,localSourceCount,regionalSourceCount,internationalSourceCount,underreportedScore,positiveImpactScore,const DeepCollectionEquality().hash(sourceArticles),const DeepCollectionEquality().hash(confirmedFacts),const DeepCollectionEquality().hash(uncertainties),imageUrl,isSaved,isDemoContent]);
+int get hashCode => Object.hashAll([runtimeType,id,headline,shortSummary,fullSummary,whyItMatters,const DeepCollectionEquality().hash(countryCodes),primaryCountryCode,region,category,latitude,longitude,firstPublishedAt,lastUpdatedAt,severity,severityReason,tone,verificationStatus,confidenceScore,localSourceCount,regionalSourceCount,internationalSourceCount,independentSourceCount,underreportedScore,underreportedReason,positiveImpactScore,rankingReason,const DeepCollectionEquality().hash(sourceArticles),const DeepCollectionEquality().hash(confirmedFacts),const DeepCollectionEquality().hash(disputedClaims),const DeepCollectionEquality().hash(uncertainties),imageUrl,isSaved,isDemoContent,correctionNotice,correctedAt]);
 
 @override
 String toString() {
-  return 'StoryCluster(id: $id, headline: $headline, shortSummary: $shortSummary, fullSummary: $fullSummary, whyItMatters: $whyItMatters, countryCodes: $countryCodes, primaryCountryCode: $primaryCountryCode, region: $region, category: $category, latitude: $latitude, longitude: $longitude, firstPublishedAt: $firstPublishedAt, lastUpdatedAt: $lastUpdatedAt, severity: $severity, severityReason: $severityReason, tone: $tone, verificationStatus: $verificationStatus, confidenceScore: $confidenceScore, localSourceCount: $localSourceCount, regionalSourceCount: $regionalSourceCount, internationalSourceCount: $internationalSourceCount, underreportedScore: $underreportedScore, positiveImpactScore: $positiveImpactScore, sourceArticles: $sourceArticles, confirmedFacts: $confirmedFacts, uncertainties: $uncertainties, imageUrl: $imageUrl, isSaved: $isSaved, isDemoContent: $isDemoContent)';
+  return 'StoryCluster(id: $id, headline: $headline, shortSummary: $shortSummary, fullSummary: $fullSummary, whyItMatters: $whyItMatters, countryCodes: $countryCodes, primaryCountryCode: $primaryCountryCode, region: $region, category: $category, latitude: $latitude, longitude: $longitude, firstPublishedAt: $firstPublishedAt, lastUpdatedAt: $lastUpdatedAt, severity: $severity, severityReason: $severityReason, tone: $tone, verificationStatus: $verificationStatus, confidenceScore: $confidenceScore, localSourceCount: $localSourceCount, regionalSourceCount: $regionalSourceCount, internationalSourceCount: $internationalSourceCount, independentSourceCount: $independentSourceCount, underreportedScore: $underreportedScore, underreportedReason: $underreportedReason, positiveImpactScore: $positiveImpactScore, rankingReason: $rankingReason, sourceArticles: $sourceArticles, confirmedFacts: $confirmedFacts, disputedClaims: $disputedClaims, uncertainties: $uncertainties, imageUrl: $imageUrl, isSaved: $isSaved, isDemoContent: $isDemoContent, correctionNotice: $correctionNotice, correctedAt: $correctedAt)';
 }
 
 
@@ -1184,7 +1465,7 @@ abstract mixin class $StoryClusterCopyWith<$Res>  {
   factory $StoryClusterCopyWith(StoryCluster value, $Res Function(StoryCluster) _then) = _$StoryClusterCopyWithImpl;
 @useResult
 $Res call({
- String id, String headline, String shortSummary, String fullSummary, String whyItMatters, List<String> countryCodes, String primaryCountryCode, String region, StoryCategory category, double latitude, double longitude, DateTime firstPublishedAt, DateTime lastUpdatedAt, Severity severity, String severityReason, Tone tone, VerificationStatus verificationStatus, double confidenceScore, int localSourceCount, int regionalSourceCount, int internationalSourceCount, double underreportedScore, double positiveImpactScore, List<NewsSource> sourceArticles, List<ConfirmedFact> confirmedFacts, List<String> uncertainties, String? imageUrl, bool isSaved, bool isDemoContent
+ String id, String headline, String shortSummary, String fullSummary, String whyItMatters, List<String> countryCodes, String primaryCountryCode, String region, StoryCategory category, double latitude, double longitude, DateTime firstPublishedAt, DateTime lastUpdatedAt, Severity severity, String severityReason, Tone tone, VerificationStatus verificationStatus, double confidenceScore, int localSourceCount, int regionalSourceCount, int internationalSourceCount, int independentSourceCount, double underreportedScore, String underreportedReason, double positiveImpactScore, String rankingReason, List<NewsSource> sourceArticles, List<ConfirmedFact> confirmedFacts, List<DisputedClaim> disputedClaims, List<String> uncertainties, String? imageUrl, bool isSaved, bool isDemoContent, String? correctionNotice, DateTime? correctedAt
 });
 
 
@@ -1201,7 +1482,7 @@ class _$StoryClusterCopyWithImpl<$Res>
 
 /// Create a copy of StoryCluster
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? headline = null,Object? shortSummary = null,Object? fullSummary = null,Object? whyItMatters = null,Object? countryCodes = null,Object? primaryCountryCode = null,Object? region = null,Object? category = null,Object? latitude = null,Object? longitude = null,Object? firstPublishedAt = null,Object? lastUpdatedAt = null,Object? severity = null,Object? severityReason = null,Object? tone = null,Object? verificationStatus = null,Object? confidenceScore = null,Object? localSourceCount = null,Object? regionalSourceCount = null,Object? internationalSourceCount = null,Object? underreportedScore = null,Object? positiveImpactScore = null,Object? sourceArticles = null,Object? confirmedFacts = null,Object? uncertainties = null,Object? imageUrl = freezed,Object? isSaved = null,Object? isDemoContent = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? headline = null,Object? shortSummary = null,Object? fullSummary = null,Object? whyItMatters = null,Object? countryCodes = null,Object? primaryCountryCode = null,Object? region = null,Object? category = null,Object? latitude = null,Object? longitude = null,Object? firstPublishedAt = null,Object? lastUpdatedAt = null,Object? severity = null,Object? severityReason = null,Object? tone = null,Object? verificationStatus = null,Object? confidenceScore = null,Object? localSourceCount = null,Object? regionalSourceCount = null,Object? internationalSourceCount = null,Object? independentSourceCount = null,Object? underreportedScore = null,Object? underreportedReason = null,Object? positiveImpactScore = null,Object? rankingReason = null,Object? sourceArticles = null,Object? confirmedFacts = null,Object? disputedClaims = null,Object? uncertainties = null,Object? imageUrl = freezed,Object? isSaved = null,Object? isDemoContent = null,Object? correctionNotice = freezed,Object? correctedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,headline: null == headline ? _self.headline : headline // ignore: cast_nullable_to_non_nullable
@@ -1224,15 +1505,21 @@ as VerificationStatus,confidenceScore: null == confidenceScore ? _self.confidenc
 as double,localSourceCount: null == localSourceCount ? _self.localSourceCount : localSourceCount // ignore: cast_nullable_to_non_nullable
 as int,regionalSourceCount: null == regionalSourceCount ? _self.regionalSourceCount : regionalSourceCount // ignore: cast_nullable_to_non_nullable
 as int,internationalSourceCount: null == internationalSourceCount ? _self.internationalSourceCount : internationalSourceCount // ignore: cast_nullable_to_non_nullable
+as int,independentSourceCount: null == independentSourceCount ? _self.independentSourceCount : independentSourceCount // ignore: cast_nullable_to_non_nullable
 as int,underreportedScore: null == underreportedScore ? _self.underreportedScore : underreportedScore // ignore: cast_nullable_to_non_nullable
-as double,positiveImpactScore: null == positiveImpactScore ? _self.positiveImpactScore : positiveImpactScore // ignore: cast_nullable_to_non_nullable
-as double,sourceArticles: null == sourceArticles ? _self.sourceArticles : sourceArticles // ignore: cast_nullable_to_non_nullable
+as double,underreportedReason: null == underreportedReason ? _self.underreportedReason : underreportedReason // ignore: cast_nullable_to_non_nullable
+as String,positiveImpactScore: null == positiveImpactScore ? _self.positiveImpactScore : positiveImpactScore // ignore: cast_nullable_to_non_nullable
+as double,rankingReason: null == rankingReason ? _self.rankingReason : rankingReason // ignore: cast_nullable_to_non_nullable
+as String,sourceArticles: null == sourceArticles ? _self.sourceArticles : sourceArticles // ignore: cast_nullable_to_non_nullable
 as List<NewsSource>,confirmedFacts: null == confirmedFacts ? _self.confirmedFacts : confirmedFacts // ignore: cast_nullable_to_non_nullable
-as List<ConfirmedFact>,uncertainties: null == uncertainties ? _self.uncertainties : uncertainties // ignore: cast_nullable_to_non_nullable
+as List<ConfirmedFact>,disputedClaims: null == disputedClaims ? _self.disputedClaims : disputedClaims // ignore: cast_nullable_to_non_nullable
+as List<DisputedClaim>,uncertainties: null == uncertainties ? _self.uncertainties : uncertainties // ignore: cast_nullable_to_non_nullable
 as List<String>,imageUrl: freezed == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable
 as String?,isSaved: null == isSaved ? _self.isSaved : isSaved // ignore: cast_nullable_to_non_nullable
 as bool,isDemoContent: null == isDemoContent ? _self.isDemoContent : isDemoContent // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,correctionNotice: freezed == correctionNotice ? _self.correctionNotice : correctionNotice // ignore: cast_nullable_to_non_nullable
+as String?,correctedAt: freezed == correctedAt ? _self.correctedAt : correctedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 
@@ -1317,10 +1604,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String headline,  String shortSummary,  String fullSummary,  String whyItMatters,  List<String> countryCodes,  String primaryCountryCode,  String region,  StoryCategory category,  double latitude,  double longitude,  DateTime firstPublishedAt,  DateTime lastUpdatedAt,  Severity severity,  String severityReason,  Tone tone,  VerificationStatus verificationStatus,  double confidenceScore,  int localSourceCount,  int regionalSourceCount,  int internationalSourceCount,  double underreportedScore,  double positiveImpactScore,  List<NewsSource> sourceArticles,  List<ConfirmedFact> confirmedFacts,  List<String> uncertainties,  String? imageUrl,  bool isSaved,  bool isDemoContent)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String headline,  String shortSummary,  String fullSummary,  String whyItMatters,  List<String> countryCodes,  String primaryCountryCode,  String region,  StoryCategory category,  double latitude,  double longitude,  DateTime firstPublishedAt,  DateTime lastUpdatedAt,  Severity severity,  String severityReason,  Tone tone,  VerificationStatus verificationStatus,  double confidenceScore,  int localSourceCount,  int regionalSourceCount,  int internationalSourceCount,  int independentSourceCount,  double underreportedScore,  String underreportedReason,  double positiveImpactScore,  String rankingReason,  List<NewsSource> sourceArticles,  List<ConfirmedFact> confirmedFacts,  List<DisputedClaim> disputedClaims,  List<String> uncertainties,  String? imageUrl,  bool isSaved,  bool isDemoContent,  String? correctionNotice,  DateTime? correctedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _StoryCluster() when $default != null:
-return $default(_that.id,_that.headline,_that.shortSummary,_that.fullSummary,_that.whyItMatters,_that.countryCodes,_that.primaryCountryCode,_that.region,_that.category,_that.latitude,_that.longitude,_that.firstPublishedAt,_that.lastUpdatedAt,_that.severity,_that.severityReason,_that.tone,_that.verificationStatus,_that.confidenceScore,_that.localSourceCount,_that.regionalSourceCount,_that.internationalSourceCount,_that.underreportedScore,_that.positiveImpactScore,_that.sourceArticles,_that.confirmedFacts,_that.uncertainties,_that.imageUrl,_that.isSaved,_that.isDemoContent);case _:
+return $default(_that.id,_that.headline,_that.shortSummary,_that.fullSummary,_that.whyItMatters,_that.countryCodes,_that.primaryCountryCode,_that.region,_that.category,_that.latitude,_that.longitude,_that.firstPublishedAt,_that.lastUpdatedAt,_that.severity,_that.severityReason,_that.tone,_that.verificationStatus,_that.confidenceScore,_that.localSourceCount,_that.regionalSourceCount,_that.internationalSourceCount,_that.independentSourceCount,_that.underreportedScore,_that.underreportedReason,_that.positiveImpactScore,_that.rankingReason,_that.sourceArticles,_that.confirmedFacts,_that.disputedClaims,_that.uncertainties,_that.imageUrl,_that.isSaved,_that.isDemoContent,_that.correctionNotice,_that.correctedAt);case _:
   return orElse();
 
 }
@@ -1338,10 +1625,10 @@ return $default(_that.id,_that.headline,_that.shortSummary,_that.fullSummary,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String headline,  String shortSummary,  String fullSummary,  String whyItMatters,  List<String> countryCodes,  String primaryCountryCode,  String region,  StoryCategory category,  double latitude,  double longitude,  DateTime firstPublishedAt,  DateTime lastUpdatedAt,  Severity severity,  String severityReason,  Tone tone,  VerificationStatus verificationStatus,  double confidenceScore,  int localSourceCount,  int regionalSourceCount,  int internationalSourceCount,  double underreportedScore,  double positiveImpactScore,  List<NewsSource> sourceArticles,  List<ConfirmedFact> confirmedFacts,  List<String> uncertainties,  String? imageUrl,  bool isSaved,  bool isDemoContent)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String headline,  String shortSummary,  String fullSummary,  String whyItMatters,  List<String> countryCodes,  String primaryCountryCode,  String region,  StoryCategory category,  double latitude,  double longitude,  DateTime firstPublishedAt,  DateTime lastUpdatedAt,  Severity severity,  String severityReason,  Tone tone,  VerificationStatus verificationStatus,  double confidenceScore,  int localSourceCount,  int regionalSourceCount,  int internationalSourceCount,  int independentSourceCount,  double underreportedScore,  String underreportedReason,  double positiveImpactScore,  String rankingReason,  List<NewsSource> sourceArticles,  List<ConfirmedFact> confirmedFacts,  List<DisputedClaim> disputedClaims,  List<String> uncertainties,  String? imageUrl,  bool isSaved,  bool isDemoContent,  String? correctionNotice,  DateTime? correctedAt)  $default,) {final _that = this;
 switch (_that) {
 case _StoryCluster():
-return $default(_that.id,_that.headline,_that.shortSummary,_that.fullSummary,_that.whyItMatters,_that.countryCodes,_that.primaryCountryCode,_that.region,_that.category,_that.latitude,_that.longitude,_that.firstPublishedAt,_that.lastUpdatedAt,_that.severity,_that.severityReason,_that.tone,_that.verificationStatus,_that.confidenceScore,_that.localSourceCount,_that.regionalSourceCount,_that.internationalSourceCount,_that.underreportedScore,_that.positiveImpactScore,_that.sourceArticles,_that.confirmedFacts,_that.uncertainties,_that.imageUrl,_that.isSaved,_that.isDemoContent);case _:
+return $default(_that.id,_that.headline,_that.shortSummary,_that.fullSummary,_that.whyItMatters,_that.countryCodes,_that.primaryCountryCode,_that.region,_that.category,_that.latitude,_that.longitude,_that.firstPublishedAt,_that.lastUpdatedAt,_that.severity,_that.severityReason,_that.tone,_that.verificationStatus,_that.confidenceScore,_that.localSourceCount,_that.regionalSourceCount,_that.internationalSourceCount,_that.independentSourceCount,_that.underreportedScore,_that.underreportedReason,_that.positiveImpactScore,_that.rankingReason,_that.sourceArticles,_that.confirmedFacts,_that.disputedClaims,_that.uncertainties,_that.imageUrl,_that.isSaved,_that.isDemoContent,_that.correctionNotice,_that.correctedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1358,10 +1645,10 @@ return $default(_that.id,_that.headline,_that.shortSummary,_that.fullSummary,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String headline,  String shortSummary,  String fullSummary,  String whyItMatters,  List<String> countryCodes,  String primaryCountryCode,  String region,  StoryCategory category,  double latitude,  double longitude,  DateTime firstPublishedAt,  DateTime lastUpdatedAt,  Severity severity,  String severityReason,  Tone tone,  VerificationStatus verificationStatus,  double confidenceScore,  int localSourceCount,  int regionalSourceCount,  int internationalSourceCount,  double underreportedScore,  double positiveImpactScore,  List<NewsSource> sourceArticles,  List<ConfirmedFact> confirmedFacts,  List<String> uncertainties,  String? imageUrl,  bool isSaved,  bool isDemoContent)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String headline,  String shortSummary,  String fullSummary,  String whyItMatters,  List<String> countryCodes,  String primaryCountryCode,  String region,  StoryCategory category,  double latitude,  double longitude,  DateTime firstPublishedAt,  DateTime lastUpdatedAt,  Severity severity,  String severityReason,  Tone tone,  VerificationStatus verificationStatus,  double confidenceScore,  int localSourceCount,  int regionalSourceCount,  int internationalSourceCount,  int independentSourceCount,  double underreportedScore,  String underreportedReason,  double positiveImpactScore,  String rankingReason,  List<NewsSource> sourceArticles,  List<ConfirmedFact> confirmedFacts,  List<DisputedClaim> disputedClaims,  List<String> uncertainties,  String? imageUrl,  bool isSaved,  bool isDemoContent,  String? correctionNotice,  DateTime? correctedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _StoryCluster() when $default != null:
-return $default(_that.id,_that.headline,_that.shortSummary,_that.fullSummary,_that.whyItMatters,_that.countryCodes,_that.primaryCountryCode,_that.region,_that.category,_that.latitude,_that.longitude,_that.firstPublishedAt,_that.lastUpdatedAt,_that.severity,_that.severityReason,_that.tone,_that.verificationStatus,_that.confidenceScore,_that.localSourceCount,_that.regionalSourceCount,_that.internationalSourceCount,_that.underreportedScore,_that.positiveImpactScore,_that.sourceArticles,_that.confirmedFacts,_that.uncertainties,_that.imageUrl,_that.isSaved,_that.isDemoContent);case _:
+return $default(_that.id,_that.headline,_that.shortSummary,_that.fullSummary,_that.whyItMatters,_that.countryCodes,_that.primaryCountryCode,_that.region,_that.category,_that.latitude,_that.longitude,_that.firstPublishedAt,_that.lastUpdatedAt,_that.severity,_that.severityReason,_that.tone,_that.verificationStatus,_that.confidenceScore,_that.localSourceCount,_that.regionalSourceCount,_that.internationalSourceCount,_that.independentSourceCount,_that.underreportedScore,_that.underreportedReason,_that.positiveImpactScore,_that.rankingReason,_that.sourceArticles,_that.confirmedFacts,_that.disputedClaims,_that.uncertainties,_that.imageUrl,_that.isSaved,_that.isDemoContent,_that.correctionNotice,_that.correctedAt);case _:
   return null;
 
 }
@@ -1373,7 +1660,7 @@ return $default(_that.id,_that.headline,_that.shortSummary,_that.fullSummary,_th
 @JsonSerializable()
 
 class _StoryCluster extends StoryCluster {
-  const _StoryCluster({required this.id, required this.headline, required this.shortSummary, required this.fullSummary, required this.whyItMatters, required final  List<String> countryCodes, required this.primaryCountryCode, required this.region, required this.category, required this.latitude, required this.longitude, required this.firstPublishedAt, required this.lastUpdatedAt, required this.severity, required this.severityReason, required this.tone, required this.verificationStatus, required this.confidenceScore, required this.localSourceCount, required this.regionalSourceCount, required this.internationalSourceCount, required this.underreportedScore, required this.positiveImpactScore, required final  List<NewsSource> sourceArticles, required final  List<ConfirmedFact> confirmedFacts, required final  List<String> uncertainties, this.imageUrl, this.isSaved = false, required this.isDemoContent}): _countryCodes = countryCodes,_sourceArticles = sourceArticles,_confirmedFacts = confirmedFacts,_uncertainties = uncertainties,super._();
+  const _StoryCluster({required this.id, required this.headline, required this.shortSummary, required this.fullSummary, required this.whyItMatters, required final  List<String> countryCodes, required this.primaryCountryCode, required this.region, required this.category, required this.latitude, required this.longitude, required this.firstPublishedAt, required this.lastUpdatedAt, required this.severity, required this.severityReason, required this.tone, required this.verificationStatus, required this.confidenceScore, required this.localSourceCount, required this.regionalSourceCount, required this.internationalSourceCount, this.independentSourceCount = 0, required this.underreportedScore, this.underreportedReason = '', required this.positiveImpactScore, this.rankingReason = '', required final  List<NewsSource> sourceArticles, required final  List<ConfirmedFact> confirmedFacts, final  List<DisputedClaim> disputedClaims = const [], required final  List<String> uncertainties, this.imageUrl, this.isSaved = false, required this.isDemoContent, this.correctionNotice, this.correctedAt}): _countryCodes = countryCodes,_sourceArticles = sourceArticles,_confirmedFacts = confirmedFacts,_disputedClaims = disputedClaims,_uncertainties = uncertainties,super._();
   factory _StoryCluster.fromJson(Map<String, dynamic> json) => _$StoryClusterFromJson(json);
 
 @override final  String id;
@@ -1403,8 +1690,11 @@ class _StoryCluster extends StoryCluster {
 @override final  int localSourceCount;
 @override final  int regionalSourceCount;
 @override final  int internationalSourceCount;
+@override@JsonKey() final  int independentSourceCount;
 @override final  double underreportedScore;
+@override@JsonKey() final  String underreportedReason;
 @override final  double positiveImpactScore;
+@override@JsonKey() final  String rankingReason;
  final  List<NewsSource> _sourceArticles;
 @override List<NewsSource> get sourceArticles {
   if (_sourceArticles is EqualUnmodifiableListView) return _sourceArticles;
@@ -1419,6 +1709,13 @@ class _StoryCluster extends StoryCluster {
   return EqualUnmodifiableListView(_confirmedFacts);
 }
 
+ final  List<DisputedClaim> _disputedClaims;
+@override@JsonKey() List<DisputedClaim> get disputedClaims {
+  if (_disputedClaims is EqualUnmodifiableListView) return _disputedClaims;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_disputedClaims);
+}
+
  final  List<String> _uncertainties;
 @override List<String> get uncertainties {
   if (_uncertainties is EqualUnmodifiableListView) return _uncertainties;
@@ -1429,6 +1726,8 @@ class _StoryCluster extends StoryCluster {
 @override final  String? imageUrl;
 @override@JsonKey() final  bool isSaved;
 @override final  bool isDemoContent;
+@override final  String? correctionNotice;
+@override final  DateTime? correctedAt;
 
 /// Create a copy of StoryCluster
 /// with the given fields replaced by the non-null parameter values.
@@ -1443,16 +1742,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StoryCluster&&(identical(other.id, id) || other.id == id)&&(identical(other.headline, headline) || other.headline == headline)&&(identical(other.shortSummary, shortSummary) || other.shortSummary == shortSummary)&&(identical(other.fullSummary, fullSummary) || other.fullSummary == fullSummary)&&(identical(other.whyItMatters, whyItMatters) || other.whyItMatters == whyItMatters)&&const DeepCollectionEquality().equals(other._countryCodes, _countryCodes)&&(identical(other.primaryCountryCode, primaryCountryCode) || other.primaryCountryCode == primaryCountryCode)&&(identical(other.region, region) || other.region == region)&&(identical(other.category, category) || other.category == category)&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude)&&(identical(other.firstPublishedAt, firstPublishedAt) || other.firstPublishedAt == firstPublishedAt)&&(identical(other.lastUpdatedAt, lastUpdatedAt) || other.lastUpdatedAt == lastUpdatedAt)&&(identical(other.severity, severity) || other.severity == severity)&&(identical(other.severityReason, severityReason) || other.severityReason == severityReason)&&(identical(other.tone, tone) || other.tone == tone)&&(identical(other.verificationStatus, verificationStatus) || other.verificationStatus == verificationStatus)&&(identical(other.confidenceScore, confidenceScore) || other.confidenceScore == confidenceScore)&&(identical(other.localSourceCount, localSourceCount) || other.localSourceCount == localSourceCount)&&(identical(other.regionalSourceCount, regionalSourceCount) || other.regionalSourceCount == regionalSourceCount)&&(identical(other.internationalSourceCount, internationalSourceCount) || other.internationalSourceCount == internationalSourceCount)&&(identical(other.underreportedScore, underreportedScore) || other.underreportedScore == underreportedScore)&&(identical(other.positiveImpactScore, positiveImpactScore) || other.positiveImpactScore == positiveImpactScore)&&const DeepCollectionEquality().equals(other._sourceArticles, _sourceArticles)&&const DeepCollectionEquality().equals(other._confirmedFacts, _confirmedFacts)&&const DeepCollectionEquality().equals(other._uncertainties, _uncertainties)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.isSaved, isSaved) || other.isSaved == isSaved)&&(identical(other.isDemoContent, isDemoContent) || other.isDemoContent == isDemoContent));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StoryCluster&&(identical(other.id, id) || other.id == id)&&(identical(other.headline, headline) || other.headline == headline)&&(identical(other.shortSummary, shortSummary) || other.shortSummary == shortSummary)&&(identical(other.fullSummary, fullSummary) || other.fullSummary == fullSummary)&&(identical(other.whyItMatters, whyItMatters) || other.whyItMatters == whyItMatters)&&const DeepCollectionEquality().equals(other._countryCodes, _countryCodes)&&(identical(other.primaryCountryCode, primaryCountryCode) || other.primaryCountryCode == primaryCountryCode)&&(identical(other.region, region) || other.region == region)&&(identical(other.category, category) || other.category == category)&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude)&&(identical(other.firstPublishedAt, firstPublishedAt) || other.firstPublishedAt == firstPublishedAt)&&(identical(other.lastUpdatedAt, lastUpdatedAt) || other.lastUpdatedAt == lastUpdatedAt)&&(identical(other.severity, severity) || other.severity == severity)&&(identical(other.severityReason, severityReason) || other.severityReason == severityReason)&&(identical(other.tone, tone) || other.tone == tone)&&(identical(other.verificationStatus, verificationStatus) || other.verificationStatus == verificationStatus)&&(identical(other.confidenceScore, confidenceScore) || other.confidenceScore == confidenceScore)&&(identical(other.localSourceCount, localSourceCount) || other.localSourceCount == localSourceCount)&&(identical(other.regionalSourceCount, regionalSourceCount) || other.regionalSourceCount == regionalSourceCount)&&(identical(other.internationalSourceCount, internationalSourceCount) || other.internationalSourceCount == internationalSourceCount)&&(identical(other.independentSourceCount, independentSourceCount) || other.independentSourceCount == independentSourceCount)&&(identical(other.underreportedScore, underreportedScore) || other.underreportedScore == underreportedScore)&&(identical(other.underreportedReason, underreportedReason) || other.underreportedReason == underreportedReason)&&(identical(other.positiveImpactScore, positiveImpactScore) || other.positiveImpactScore == positiveImpactScore)&&(identical(other.rankingReason, rankingReason) || other.rankingReason == rankingReason)&&const DeepCollectionEquality().equals(other._sourceArticles, _sourceArticles)&&const DeepCollectionEquality().equals(other._confirmedFacts, _confirmedFacts)&&const DeepCollectionEquality().equals(other._disputedClaims, _disputedClaims)&&const DeepCollectionEquality().equals(other._uncertainties, _uncertainties)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.isSaved, isSaved) || other.isSaved == isSaved)&&(identical(other.isDemoContent, isDemoContent) || other.isDemoContent == isDemoContent)&&(identical(other.correctionNotice, correctionNotice) || other.correctionNotice == correctionNotice)&&(identical(other.correctedAt, correctedAt) || other.correctedAt == correctedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,headline,shortSummary,fullSummary,whyItMatters,const DeepCollectionEquality().hash(_countryCodes),primaryCountryCode,region,category,latitude,longitude,firstPublishedAt,lastUpdatedAt,severity,severityReason,tone,verificationStatus,confidenceScore,localSourceCount,regionalSourceCount,internationalSourceCount,underreportedScore,positiveImpactScore,const DeepCollectionEquality().hash(_sourceArticles),const DeepCollectionEquality().hash(_confirmedFacts),const DeepCollectionEquality().hash(_uncertainties),imageUrl,isSaved,isDemoContent]);
+int get hashCode => Object.hashAll([runtimeType,id,headline,shortSummary,fullSummary,whyItMatters,const DeepCollectionEquality().hash(_countryCodes),primaryCountryCode,region,category,latitude,longitude,firstPublishedAt,lastUpdatedAt,severity,severityReason,tone,verificationStatus,confidenceScore,localSourceCount,regionalSourceCount,internationalSourceCount,independentSourceCount,underreportedScore,underreportedReason,positiveImpactScore,rankingReason,const DeepCollectionEquality().hash(_sourceArticles),const DeepCollectionEquality().hash(_confirmedFacts),const DeepCollectionEquality().hash(_disputedClaims),const DeepCollectionEquality().hash(_uncertainties),imageUrl,isSaved,isDemoContent,correctionNotice,correctedAt]);
 
 @override
 String toString() {
-  return 'StoryCluster(id: $id, headline: $headline, shortSummary: $shortSummary, fullSummary: $fullSummary, whyItMatters: $whyItMatters, countryCodes: $countryCodes, primaryCountryCode: $primaryCountryCode, region: $region, category: $category, latitude: $latitude, longitude: $longitude, firstPublishedAt: $firstPublishedAt, lastUpdatedAt: $lastUpdatedAt, severity: $severity, severityReason: $severityReason, tone: $tone, verificationStatus: $verificationStatus, confidenceScore: $confidenceScore, localSourceCount: $localSourceCount, regionalSourceCount: $regionalSourceCount, internationalSourceCount: $internationalSourceCount, underreportedScore: $underreportedScore, positiveImpactScore: $positiveImpactScore, sourceArticles: $sourceArticles, confirmedFacts: $confirmedFacts, uncertainties: $uncertainties, imageUrl: $imageUrl, isSaved: $isSaved, isDemoContent: $isDemoContent)';
+  return 'StoryCluster(id: $id, headline: $headline, shortSummary: $shortSummary, fullSummary: $fullSummary, whyItMatters: $whyItMatters, countryCodes: $countryCodes, primaryCountryCode: $primaryCountryCode, region: $region, category: $category, latitude: $latitude, longitude: $longitude, firstPublishedAt: $firstPublishedAt, lastUpdatedAt: $lastUpdatedAt, severity: $severity, severityReason: $severityReason, tone: $tone, verificationStatus: $verificationStatus, confidenceScore: $confidenceScore, localSourceCount: $localSourceCount, regionalSourceCount: $regionalSourceCount, internationalSourceCount: $internationalSourceCount, independentSourceCount: $independentSourceCount, underreportedScore: $underreportedScore, underreportedReason: $underreportedReason, positiveImpactScore: $positiveImpactScore, rankingReason: $rankingReason, sourceArticles: $sourceArticles, confirmedFacts: $confirmedFacts, disputedClaims: $disputedClaims, uncertainties: $uncertainties, imageUrl: $imageUrl, isSaved: $isSaved, isDemoContent: $isDemoContent, correctionNotice: $correctionNotice, correctedAt: $correctedAt)';
 }
 
 
@@ -1463,7 +1762,7 @@ abstract mixin class _$StoryClusterCopyWith<$Res> implements $StoryClusterCopyWi
   factory _$StoryClusterCopyWith(_StoryCluster value, $Res Function(_StoryCluster) _then) = __$StoryClusterCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String headline, String shortSummary, String fullSummary, String whyItMatters, List<String> countryCodes, String primaryCountryCode, String region, StoryCategory category, double latitude, double longitude, DateTime firstPublishedAt, DateTime lastUpdatedAt, Severity severity, String severityReason, Tone tone, VerificationStatus verificationStatus, double confidenceScore, int localSourceCount, int regionalSourceCount, int internationalSourceCount, double underreportedScore, double positiveImpactScore, List<NewsSource> sourceArticles, List<ConfirmedFact> confirmedFacts, List<String> uncertainties, String? imageUrl, bool isSaved, bool isDemoContent
+ String id, String headline, String shortSummary, String fullSummary, String whyItMatters, List<String> countryCodes, String primaryCountryCode, String region, StoryCategory category, double latitude, double longitude, DateTime firstPublishedAt, DateTime lastUpdatedAt, Severity severity, String severityReason, Tone tone, VerificationStatus verificationStatus, double confidenceScore, int localSourceCount, int regionalSourceCount, int internationalSourceCount, int independentSourceCount, double underreportedScore, String underreportedReason, double positiveImpactScore, String rankingReason, List<NewsSource> sourceArticles, List<ConfirmedFact> confirmedFacts, List<DisputedClaim> disputedClaims, List<String> uncertainties, String? imageUrl, bool isSaved, bool isDemoContent, String? correctionNotice, DateTime? correctedAt
 });
 
 
@@ -1480,7 +1779,7 @@ class __$StoryClusterCopyWithImpl<$Res>
 
 /// Create a copy of StoryCluster
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? headline = null,Object? shortSummary = null,Object? fullSummary = null,Object? whyItMatters = null,Object? countryCodes = null,Object? primaryCountryCode = null,Object? region = null,Object? category = null,Object? latitude = null,Object? longitude = null,Object? firstPublishedAt = null,Object? lastUpdatedAt = null,Object? severity = null,Object? severityReason = null,Object? tone = null,Object? verificationStatus = null,Object? confidenceScore = null,Object? localSourceCount = null,Object? regionalSourceCount = null,Object? internationalSourceCount = null,Object? underreportedScore = null,Object? positiveImpactScore = null,Object? sourceArticles = null,Object? confirmedFacts = null,Object? uncertainties = null,Object? imageUrl = freezed,Object? isSaved = null,Object? isDemoContent = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? headline = null,Object? shortSummary = null,Object? fullSummary = null,Object? whyItMatters = null,Object? countryCodes = null,Object? primaryCountryCode = null,Object? region = null,Object? category = null,Object? latitude = null,Object? longitude = null,Object? firstPublishedAt = null,Object? lastUpdatedAt = null,Object? severity = null,Object? severityReason = null,Object? tone = null,Object? verificationStatus = null,Object? confidenceScore = null,Object? localSourceCount = null,Object? regionalSourceCount = null,Object? internationalSourceCount = null,Object? independentSourceCount = null,Object? underreportedScore = null,Object? underreportedReason = null,Object? positiveImpactScore = null,Object? rankingReason = null,Object? sourceArticles = null,Object? confirmedFacts = null,Object? disputedClaims = null,Object? uncertainties = null,Object? imageUrl = freezed,Object? isSaved = null,Object? isDemoContent = null,Object? correctionNotice = freezed,Object? correctedAt = freezed,}) {
   return _then(_StoryCluster(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,headline: null == headline ? _self.headline : headline // ignore: cast_nullable_to_non_nullable
@@ -1503,15 +1802,21 @@ as VerificationStatus,confidenceScore: null == confidenceScore ? _self.confidenc
 as double,localSourceCount: null == localSourceCount ? _self.localSourceCount : localSourceCount // ignore: cast_nullable_to_non_nullable
 as int,regionalSourceCount: null == regionalSourceCount ? _self.regionalSourceCount : regionalSourceCount // ignore: cast_nullable_to_non_nullable
 as int,internationalSourceCount: null == internationalSourceCount ? _self.internationalSourceCount : internationalSourceCount // ignore: cast_nullable_to_non_nullable
+as int,independentSourceCount: null == independentSourceCount ? _self.independentSourceCount : independentSourceCount // ignore: cast_nullable_to_non_nullable
 as int,underreportedScore: null == underreportedScore ? _self.underreportedScore : underreportedScore // ignore: cast_nullable_to_non_nullable
-as double,positiveImpactScore: null == positiveImpactScore ? _self.positiveImpactScore : positiveImpactScore // ignore: cast_nullable_to_non_nullable
-as double,sourceArticles: null == sourceArticles ? _self._sourceArticles : sourceArticles // ignore: cast_nullable_to_non_nullable
+as double,underreportedReason: null == underreportedReason ? _self.underreportedReason : underreportedReason // ignore: cast_nullable_to_non_nullable
+as String,positiveImpactScore: null == positiveImpactScore ? _self.positiveImpactScore : positiveImpactScore // ignore: cast_nullable_to_non_nullable
+as double,rankingReason: null == rankingReason ? _self.rankingReason : rankingReason // ignore: cast_nullable_to_non_nullable
+as String,sourceArticles: null == sourceArticles ? _self._sourceArticles : sourceArticles // ignore: cast_nullable_to_non_nullable
 as List<NewsSource>,confirmedFacts: null == confirmedFacts ? _self._confirmedFacts : confirmedFacts // ignore: cast_nullable_to_non_nullable
-as List<ConfirmedFact>,uncertainties: null == uncertainties ? _self._uncertainties : uncertainties // ignore: cast_nullable_to_non_nullable
+as List<ConfirmedFact>,disputedClaims: null == disputedClaims ? _self._disputedClaims : disputedClaims // ignore: cast_nullable_to_non_nullable
+as List<DisputedClaim>,uncertainties: null == uncertainties ? _self._uncertainties : uncertainties // ignore: cast_nullable_to_non_nullable
 as List<String>,imageUrl: freezed == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable
 as String?,isSaved: null == isSaved ? _self.isSaved : isSaved // ignore: cast_nullable_to_non_nullable
 as bool,isDemoContent: null == isDemoContent ? _self.isDemoContent : isDemoContent // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,correctionNotice: freezed == correctionNotice ? _self.correctionNotice : correctionNotice // ignore: cast_nullable_to_non_nullable
+as String?,correctedAt: freezed == correctedAt ? _self.correctedAt : correctedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 

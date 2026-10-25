@@ -1,79 +1,45 @@
-# Future REST API Contract
+# VeriMundi REST API contract (`/v1`)
 
-The Flutter client reads the future base URL from:
+Flutter reads the base URL from:
 
 ```text
 --dart-define=NEWS_API_BASE_URL=...
+--dart-define=APP_ENV=development|staging|production
 ```
 
-The default value is `mock`, which keeps the app in local demo mode.
+Default `NEWS_API_BASE_URL` is `mock` (local demo catalog).  
+`APP_ENV=production` with `mock` is a hard configuration error (no silent fictional fallback).
 
 ## Endpoints
 
+- `GET /health`
 - `GET /v1/world/status`
 - `GET /v1/regions`
 - `GET /v1/countries`
+- `GET /v1/countries/{countryCode}`
 - `GET /v1/countries/{countryCode}/stories`
 - `GET /v1/stories`
 - `GET /v1/stories/{storyId}`
 - `GET /v1/stories/{storyId}/sources`
+- `GET /v1/stories/{storyId}/claims`
+- `GET /v1/stories/{storyId}/history`
 - `GET /v1/stories/underreported`
 - `GET /v1/stories/positive`
+- `GET /v1/search`
 - `POST /v1/stories/{storyId}/questions`
-- `POST /v1/users/me/saved-stories`
-- `DELETE /v1/users/me/saved-stories/{storyId}`
+- `POST /v1/stories/{storyId}/reports`
+- `POST /v1/admin/ingestion/run` (ops; protect before public deploy)
 
-## Example Story Response
-
-```json
-{
-  "id": "story-001",
-  "headline": "River districts test new flood warning sirens",
-  "shortSummary": "Local agencies are testing sirens and text alerts.",
-  "whyItMatters": "Early warnings can reduce harm when flooding develops quickly.",
-  "countryCodes": ["NP"],
-  "primaryCountryCode": "NP",
-  "region": "Asia",
-  "category": "climate",
-  "severity": "critical",
-  "severityReason": "Forecast river levels may require urgent evacuation planning.",
-  "tone": "concerning",
-  "verificationStatus": "developing",
-  "confidenceScore": 0.74,
-  "sourceArticles": []
-}
-```
-
-## Example Question Request
+List endpoints return:
 
 ```json
-{
-  "question": "What remains uncertain?",
-  "sourceIds": ["story-001-src-1", "story-001-src-2"]
-}
+{ "items": [], "page": 1, "pageSize": 20, "total": 0 }
 ```
 
-## Example Question Response
+Errors use:
 
 ```json
-{
-  "answer": "Forecast rainfall totals and evacuation needs remain uncertain.",
-  "insufficientEvidence": false,
-  "confidenceScore": 0.72,
-  "sourceIds": ["story-001-src-1", "story-001-src-2"],
-  "generatedAt": "2026-07-12T12:00:00Z"
-}
+{ "code": "story_not_found", "message": "Story was not found." }
 ```
 
-## Saved Story Request
-
-```json
-{
-  "storyId": "story-001",
-  "headlineSnapshot": "River districts test new flood warning sirens",
-  "country": "NP",
-  "summarySnapshot": "Local agencies are testing sirens and text alerts.",
-  "verificationStatus": "developing",
-  "lastKnownSourceCount": 9
-}
-```
+OpenAPI/Swagger is enabled for the Development environment on the ASP.NET host.

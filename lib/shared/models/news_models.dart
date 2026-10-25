@@ -106,6 +106,18 @@ abstract class ConfirmedFact with _$ConfirmedFact {
 }
 
 @freezed
+abstract class DisputedClaim with _$DisputedClaim {
+  const factory DisputedClaim({
+    required String text,
+    required List<String> supportingSourceIds,
+    required List<String> disputingSourceIds,
+  }) = _DisputedClaim;
+
+  factory DisputedClaim.fromJson(Map<String, dynamic> json) =>
+      _$DisputedClaimFromJson(json);
+}
+
+@freezed
 abstract class StoryCluster with _$StoryCluster {
   const StoryCluster._();
 
@@ -131,14 +143,20 @@ abstract class StoryCluster with _$StoryCluster {
     required int localSourceCount,
     required int regionalSourceCount,
     required int internationalSourceCount,
+    @Default(0) int independentSourceCount,
     required double underreportedScore,
+    @Default('') String underreportedReason,
     required double positiveImpactScore,
+    @Default('') String rankingReason,
     required List<NewsSource> sourceArticles,
     required List<ConfirmedFact> confirmedFacts,
+    @Default([]) List<DisputedClaim> disputedClaims,
     required List<String> uncertainties,
     String? imageUrl,
     @Default(false) bool isSaved,
     required bool isDemoContent,
+    String? correctionNotice,
+    DateTime? correctedAt,
   }) = _StoryCluster;
 
   int get sourceCount =>

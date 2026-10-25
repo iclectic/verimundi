@@ -54,3 +54,11 @@ Do not describe the AI as unbiased or completely objective.
 ## Client-Side Rule
 
 The Flutter client must never call a commercial GenAI provider directly using a secret API key. Real GenAI operations must pass through a secure backend.
+
+## Backend synthesis (current)
+
+The ASP.NET host exposes grounded synthesis and Ask VeriMundi via `IAiSynthesisService`.
+
+- Default implementation: deterministic heuristic synthesis (no GenAI API key required).
+- Optional commercial GenAI providers may be added behind the same interface using host secrets only.
+- Insufficient evidence, source-linked confirmed facts, and explicit uncertainties remain mandatory.

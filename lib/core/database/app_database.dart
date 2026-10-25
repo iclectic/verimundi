@@ -20,13 +20,35 @@ class SavedStoryEntries extends Table {
   Set<Column<Object>> get primaryKey => {storyId};
 }
 
-@DriftDatabase(tables: [SavedStoryEntries])
+/// Local metadata cache for feeds/recent story opens. Never stores full
+/// copyrighted external article bodies — only VeriMundi JSON snapshots.
+class CachedFeedEntries extends Table {
+  TextColumn get cacheKey => text()();
+  TextColumn get payloadJson => text()();
+  DateTimeColumn get fetchedAt => dateTime()();
+  TextColumn get sourceMode => text().withDefault(const Constant('mock'))();
+
+  @override
+  Set<Column<Object>> get primaryKey => {cacheKey};
+}
+
+@DriftDatabase(tables: [SavedStoryEntries, CachedFeedEntries])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (m) => m.createAll(),
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        await m.createTable(cachedFeedEntries);
+      }
+    },
+  );
 
   Stream<List<SavedStoryEntry>> watchSavedStories() => (select(
     savedStoryEntries,
@@ -51,6 +73,16 @@ class AppDatabase extends _$AppDatabase {
     return (delete(
       savedStoryEntries,
     )..where((row) => row.storyId.equals(storyId))).go();
+  }
+
+  Future<void> upsertFeedCache(CachedFeedEntriesCompanion entry) {
+    return into(cachedFeedEntries).insertOnConflictUpdate(entry);
+  }
+
+  Future<CachedFeedEntry?> feedCache(String cacheKey) {
+    return (select(
+      cachedFeedEntries,
+    )..where((row) => row.cacheKey.equals(cacheKey))).getSingleOrNull();
   }
 }
 

@@ -110,44 +110,50 @@ class MockNewsRepository implements NewsRepository {
         regionalSourceCount: regional,
         internationalSourceCount: international,
       );
+      final draft = StoryCluster(
+        id: seed['id'] as String,
+        headline: seed['headline'] as String,
+        shortSummary: seed['shortSummary'] as String,
+        fullSummary: seed['fullSummary'] as String,
+        whyItMatters: seed['whyItMatters'] as String,
+        countryCodes: [seed['primaryCountryCode'] as String],
+        primaryCountryCode: seed['primaryCountryCode'] as String,
+        region: seed['region'] as String,
+        category: category,
+        latitude: (seed['latitude'] as num).toDouble(),
+        longitude: (seed['longitude'] as num).toDouble(),
+        firstPublishedAt: now.subtract(
+          Duration(days: index % 9 + 1, hours: index),
+        ),
+        lastUpdatedAt: now.subtract(Duration(hours: index + 1)),
+        severity: severity,
+        severityReason: seed['severityReason'] as String,
+        tone: tone,
+        verificationStatus: verification,
+        confidenceScore: (seed['confidenceScore'] as num).toDouble(),
+        localSourceCount: local,
+        regionalSourceCount: regional,
+        internationalSourceCount: international,
+        independentSourceCount: local + regional + international,
+        underreportedScore: score,
+        positiveImpactScore: (seed['positiveImpactScore'] as num).toDouble(),
+        sourceArticles: sources,
+        confirmedFacts: [
+          ConfirmedFact(
+            text: seed['confirmedFact'] as String,
+            sourceIds: sources.take(2).map((source) => source.id).toList(),
+          ),
+        ],
+        uncertainties: List<String>.from(
+          seed['uncertainties'] as List<dynamic>,
+        ),
+        isDemoContent: true,
+      );
       stories.add(
-        StoryCluster(
-          id: seed['id'] as String,
-          headline: seed['headline'] as String,
-          shortSummary: seed['shortSummary'] as String,
-          fullSummary: seed['fullSummary'] as String,
-          whyItMatters: seed['whyItMatters'] as String,
-          countryCodes: [seed['primaryCountryCode'] as String],
-          primaryCountryCode: seed['primaryCountryCode'] as String,
-          region: seed['region'] as String,
-          category: category,
-          latitude: (seed['latitude'] as num).toDouble(),
-          longitude: (seed['longitude'] as num).toDouble(),
-          firstPublishedAt: now.subtract(
-            Duration(days: index % 9 + 1, hours: index),
-          ),
-          lastUpdatedAt: now.subtract(Duration(hours: index + 1)),
-          severity: severity,
-          severityReason: seed['severityReason'] as String,
-          tone: tone,
-          verificationStatus: verification,
-          confidenceScore: (seed['confidenceScore'] as num).toDouble(),
-          localSourceCount: local,
-          regionalSourceCount: regional,
-          internationalSourceCount: international,
-          underreportedScore: score,
-          positiveImpactScore: (seed['positiveImpactScore'] as num).toDouble(),
-          sourceArticles: sources,
-          confirmedFacts: [
-            ConfirmedFact(
-              text: seed['confirmedFact'] as String,
-              sourceIds: sources.take(2).map((source) => source.id).toList(),
-            ),
-          ],
-          uncertainties: List<String>.from(
-            seed['uncertainties'] as List<dynamic>,
-          ),
-          isDemoContent: true,
+        draft.copyWith(
+          underreportedReason: _scoring.explanation(draft),
+          rankingReason:
+              'Mock World Pulse ordering uses severity, recency, and source counts from the fictional catalog.',
         ),
       );
     }
@@ -167,35 +173,6 @@ class MockNewsRepository implements NewsRepository {
     'regional' => 'Regional',
     _ => 'Global',
   };
-}
-
-class RemoteNewsRepository implements NewsRepository {
-  RemoteNewsRepository({required String baseUrl}) : _baseUrl = baseUrl;
-
-  final String _baseUrl;
-
-  @override
-  Future<List<CountryNewsStatus>> getCountryStatuses() => _unavailable();
-
-  @override
-  Future<List<StoryCluster>> getPositiveStories() => _unavailable();
-
-  @override
-  Future<StoryCluster?> getStoryById(String id) => _unavailable();
-
-  @override
-  Future<List<StoryCluster>> getStories(StoryFilter filter) => _unavailable();
-
-  @override
-  Future<List<StoryCluster>> getUnderreportedStories() => _unavailable();
-
-  Future<T> _unavailable<T>() {
-    return Future<T>.error(
-      StateError(
-        'NEWS_API_BASE_URL is set to "$_baseUrl", but this release does not include a live VeriMundi backend client. Use NEWS_API_BASE_URL=mock for the Play Store demo MVP.',
-      ),
-    );
-  }
 }
 
 class MockGenAiSummaryService implements GenAiSummaryService {

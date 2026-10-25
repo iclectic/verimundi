@@ -1,0 +1,6 @@
+@VeriMundi.Api_HostAddress = http://localhost:5013
+
+GET {{VeriMundi.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

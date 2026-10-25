@@ -5,9 +5,12 @@ class MockStoryQuestionService implements StoryQuestionService {
   @override
   Future<AiStoryAnswer> askQuestion(StoryCluster story, String question) async {
     final text = question.toLowerCase();
+    final asksForCertainty = RegExp(
+      r'(^|[^a-z])certain(ty)?([^a-z]|$)',
+    ).hasMatch(text);
     if (story.verificationStatus == VerificationStatus.insufficientEvidence ||
         text.contains('prove') ||
-        text.contains('certain')) {
+        asksForCertainty) {
       return AiStoryAnswer(
         answer:
             'VeriMundi does not currently have enough reliable source material to answer that with confidence.',

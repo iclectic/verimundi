@@ -30,8 +30,10 @@ class SavedScreen extends ConsumerWidget {
                       child: ListTile(
                         title: Text(item.headlineSnapshot),
                         subtitle: Text(
-                          '${item.country} • ${item.verificationStatus.name} • ${item.lastKnownSourceCount} sources • saved ${DateFormatters.relative(item.savedAt)}',
+                          '${item.country} • ${item.verificationStatus.name} • ${item.lastKnownSourceCount} sources • saved ${DateFormatters.relative(item.savedAt)}\n'
+                          'Saved snapshot may be older than the current server version.',
                         ),
+                        isThreeLine: true,
                         trailing: IconButton(
                           tooltip: 'Remove saved story',
                           icon: const Icon(Icons.bookmark_remove),
@@ -40,6 +42,7 @@ class SavedScreen extends ConsumerWidget {
                                 .read(savedStoriesRepositoryProvider)
                                 .remove(item.storyId);
                             ref.invalidate(storiesProvider);
+                            ref.invalidate(storiesFeedProvider);
                           },
                         ),
                         onTap: () => context.push('/stories/${item.storyId}'),
@@ -71,7 +74,7 @@ class _EmptySavedStories extends StatelessWidget {
             Text('No saved stories yet.', textAlign: TextAlign.center),
             SizedBox(height: 8),
             Text(
-              'Save a fictional demo story from any feed to return to it here later.',
+              'Save a story from any feed to return to it here later.',
               textAlign: TextAlign.center,
             ),
           ],

@@ -6,11 +6,19 @@ class AppConstants {
   static const demoBanner =
       'Demo MVP: Stories, sources, and AI answers in this build are fictional demo content for product evaluation.';
   static const releaseStatus =
-      'Production-ready demo MVP. No live news feed, user accounts, push notifications, or commercial GenAI provider calls are enabled.';
+      'Mock or remote modes available. Production builds must set APP_ENV=production with a live NEWS_API_BASE_URL — silent mock fallback is forbidden.';
   static const apiBaseUrl = String.fromEnvironment(
     'NEWS_API_BASE_URL',
     defaultValue: 'mock',
   );
+  static const appEnv = String.fromEnvironment(
+    'APP_ENV',
+    defaultValue: 'development',
+  );
+
+  static bool get isMockApi => apiBaseUrl == 'mock';
+
+  static bool get isProductionEnv => appEnv.toLowerCase() == 'production';
 }
 
 class AppSpacing {

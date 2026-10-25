@@ -22,7 +22,11 @@ builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
 });
 
 builder.Services.AddVeriMundiInfrastructure(builder.Configuration);
-builder.Services.AddHostedService<IngestionHostedService>();
+var isTesting = builder.Environment.IsEnvironment("Testing");
+if (!isTesting)
+{
+    builder.Services.AddHostedService<IngestionHostedService>();
+}
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.ConfigureHttpJsonOptions(options =>
@@ -58,8 +62,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-using (var scope = app.Services.CreateScope())
+// WebApplicationFactory smoke tests set Environment=Testing and must not require Postgres.
+if (!app.Environment.IsEnvironment("Testing"))
 {
+    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<VeriMundiDbContext>();
     await SeedData.InitialiseAsync(db);
     var pipeline = scope.ServiceProvider.GetRequiredService<IngestionPipeline>();

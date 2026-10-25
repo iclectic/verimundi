@@ -1,11 +1,13 @@
 using System.Net;
 using FluentAssertions;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace VeriMundi.IntegrationTests;
 
 /// <summary>
-/// Light host smoke tests. Full Postgres-backed ingestion is exercised via local `dotnet run` + curl.
+/// Host smoke tests that do not require PostgreSQL.
+/// Full Postgres-backed ingestion is exercised via local <c>dotnet run</c> + curl.
 /// </summary>
 public class ApiSmokeTests : IClassFixture<WebApplicationFactory<Program>>
 {
@@ -13,13 +15,15 @@ public class ApiSmokeTests : IClassFixture<WebApplicationFactory<Program>>
 
     public ApiSmokeTests(WebApplicationFactory<Program> factory)
     {
-        _factory = factory;
+        _factory = factory.WithWebHostBuilder(builder =>
+        {
+            builder.UseEnvironment("Testing");
+        });
     }
 
     [Fact]
     public async Task Health_endpoint_is_mapped()
     {
-        // Requires local Postgres matching ConnectionStrings:VeriMundi.
         var client = _factory.CreateClient();
         var response = await client.GetAsync("/health");
         response.StatusCode.Should().Be(HttpStatusCode.OK);

@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using VeriMundi.Api.Contracts;
 
 namespace VeriMundi.Api.Middleware;
 
@@ -20,6 +21,7 @@ public sealed class SimpleRateLimitMiddleware(RequestDelegate next)
         {
             var key = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
             var counter = Counters.GetOrAdd(key, _ => new Counter());
+            var limited = false;
             lock (counter)
             {
                 var now = DateTimeOffset.UtcNow;
@@ -30,12 +32,17 @@ public sealed class SimpleRateLimitMiddleware(RequestDelegate next)
                 }
 
                 counter.Count++;
-                if (counter.Count > Limit)
-                {
-                    context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
-                    context.Response.Headers.RetryAfter = "60";
-                    return;
-                }
+                limited = counter.Count > Limit;
+            }
+
+            if (limited)
+            {
+                context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+                context.Response.Headers.RetryAfter = "60";
+                await context.Response.WriteAsJsonAsync(new ApiError(
+                    "rate_limited",
+                    "Too many requests. Please wait a minute and try again."));
+                return;
             }
         }
 

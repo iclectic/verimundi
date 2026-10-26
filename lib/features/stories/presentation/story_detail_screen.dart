@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/network/remote_api_exception.dart';
 import '../../../core/utils/date_formatters.dart';
 import '../../../shared/models/news_models.dart';
 import '../../../shared/providers/app_providers.dart';
 import '../../../shared/widgets/async_value_view.dart';
-import '../../../shared/widgets/demo_banner.dart';
+import '../../../shared/widgets/app_status_banners.dart';
 import '../../../shared/widgets/status_pill.dart';
 import '../data/remote_news_repository.dart';
 
@@ -74,7 +75,7 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
           return ListView(
             padding: const EdgeInsets.only(bottom: 24),
             children: [
-              const DemoBanner(),
+              const AppStatusBanners(),
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: ConstrainedBox(
@@ -387,6 +388,8 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
     notes.dispose();
     if (submitted == true && context.mounted) {
       final repository = ref.read(newsRepositoryProvider);
+      var reportMessage =
+          'Thank you. Reports help VeriMundi correct summaries and classifications.';
       if (repository is RemoteNewsRepository) {
         try {
           await repository.reportStory(
@@ -394,18 +397,17 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
             reason: selected,
             details: detailText,
           );
+        } on RemoteApiException catch (error) {
+          reportMessage = '${error.title}: ${error.message}';
         } catch (_) {
-          // Local acknowledgement still shown; backend may be offline.
+          reportMessage =
+              'Could not reach the server. Your note was not submitted — try again later.';
         }
       }
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Thank you. Reports help VeriMundi correct summaries and classifications.',
-            ),
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(reportMessage)));
       }
     }
   }
@@ -531,7 +533,14 @@ class _QuestionBox extends StatelessWidget {
                 ),
               ),
               loading: () => const LinearProgressIndicator(),
-              error: (error, stackTrace) => Text(error.toString()),
+              error: (error, stackTrace) {
+                if (error is RemoteApiException) {
+                  return Text(
+                    '${error.title}\n${error.message}\n${error.recoveryHint}',
+                  );
+                }
+                return Text(error.toString());
+              },
             ),
           ],
         ],

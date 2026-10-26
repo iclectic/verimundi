@@ -33,10 +33,16 @@ public static class DependencyInjection
         var fixturePath = configuration["Ingestion:FixturePath"];
         services.AddScoped<FixtureNewsProvider>(_ => new FixtureNewsProvider(fixturePath));
         services.AddScoped<RssNewsProvider>();
+        services.AddScoped<GdeltDiscoveryProvider>();
         services.AddScoped<INewsProvider>(sp => sp.GetRequiredService<FixtureNewsProvider>());
         if (string.Equals(configuration["Ingestion:EnableRss"], "true", StringComparison.OrdinalIgnoreCase))
         {
             services.AddScoped<INewsProvider>(sp => sp.GetRequiredService<RssNewsProvider>());
+        }
+
+        if (string.Equals(configuration["Ingestion:EnableGdelt"], "true", StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddScoped<INewsProvider>(sp => sp.GetRequiredService<GdeltDiscoveryProvider>());
         }
 
         services.AddScoped<IngestionPipeline>();

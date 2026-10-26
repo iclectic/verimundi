@@ -6,11 +6,13 @@ import '../../core/cache/cache_freshness.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/database/app_database.dart';
 import '../../core/network/api_client.dart';
+import '../../core/network/app_remote_config.dart';
 import '../../features/saved/data/drift_saved_stories_repository.dart';
 import '../../features/saved/data/saved_stories_repository.dart';
 import '../../features/stories/data/feed_cache_repository.dart';
 import '../../features/stories/data/mock_news_repository.dart';
 import '../../features/stories/data/remote_news_repository.dart';
+import '../../features/stories/data/story_filtering.dart';
 import '../../features/stories/domain/news_repository.dart';
 import '../../features/story_questions/data/mock_story_question_service.dart';
 import '../../features/story_questions/data/remote_story_question_service.dart';
@@ -18,6 +20,23 @@ import '../../features/story_questions/domain/story_question_service.dart';
 import '../models/news_models.dart';
 
 final apiClientProvider = Provider<ApiClient>((ref) => ApiClient());
+
+final remoteAppConfigProvider = FutureProvider<AppRemoteConfig?>((ref) async {
+  final client = ref.watch(apiClientProvider);
+  if (client.isMockMode) {
+    return null;
+  }
+  try {
+    final response = await client.dio.get<Map<String, dynamic>>(
+      '/v1/app/config',
+    );
+    final data = response.data;
+    if (data == null) return null;
+    return AppRemoteConfig.fromJson(data);
+  } catch (_) {
+    return null;
+  }
+});
 
 final databaseProvider = Provider<AppDatabase>((ref) {
   final database = AppDatabase();
@@ -131,11 +150,14 @@ final underreportedStoriesProvider = FutureProvider<List<StoryCluster>>((
   ref,
 ) async {
   final repository = ref.watch(newsRepositoryProvider);
+  final filter = ref.watch(storyFilterProvider);
   final savedIds = await ref
       .watch(savedStoriesRepositoryProvider)
       .getSavedStoryIds();
   final stories = await repository.getUnderreportedStories();
-  return stories
+  const filtering = StoryFiltering();
+  return filtering
+      .apply(stories, filter)
       .map((story) => story.copyWith(isSaved: savedIds.contains(story.id)))
       .toList();
 });

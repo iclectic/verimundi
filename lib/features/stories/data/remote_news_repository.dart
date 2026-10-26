@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import '../../../core/network/api_client.dart';
+import '../../../core/network/remote_api_exception.dart';
 import '../../../shared/models/news_models.dart';
 import '../domain/news_repository.dart';
 import 'enum_parsing.dart';
@@ -285,33 +286,10 @@ class RemoteNewsRepository implements NewsRepository {
     );
   }
 
-  StateError _mapError(DioException error) {
-    final status = error.response?.statusCode;
-    final data = error.response?.data;
-    String? message;
-    if (data is Map<String, dynamic>) {
-      message = data['message'] as String? ?? data['detail'] as String?;
-    }
-    if (status == 429) {
-      return StateError(
-        message ?? 'Rate limit exceeded. Please try again later.',
-      );
-    }
-    if (status == 503) {
-      return StateError(message ?? 'VeriMundi API is in maintenance mode.');
-    }
-    if (error.type == DioExceptionType.connectionTimeout ||
-        error.type == DioExceptionType.receiveTimeout) {
-      return StateError('Timed out contacting the VeriMundi API.');
-    }
-    if (error.type == DioExceptionType.connectionError) {
-      return StateError(
-        'Unable to reach the VeriMundi API at ${_client.dio.options.baseUrl}.',
-      );
-    }
-    return StateError(
-      message ??
-          'VeriMundi API request failed${status != null ? ' (HTTP $status)' : ''}.',
+  RemoteApiException _mapError(DioException error) {
+    return RemoteApiException.fromDio(
+      error,
+      baseUrlHint: _client.dio.options.baseUrl,
     );
   }
 }

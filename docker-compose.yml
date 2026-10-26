@@ -1,0 +1,43 @@
+# Local VeriMundi stack for live-path development.
+# Fixtures ingest on API startup. RSS remains off unless Ingestion__EnableRss=true
+# and approved feed URLs are seeded.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: verimundi
+      POSTGRES_USER: verimundi
+      POSTGRES_PASSWORD: verimundi
+    ports:
+      - '5432:5432'
+    volumes:
+      - verimundi_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U verimundi -d verimundi']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    image: mcr.microsoft.com/dotnet/sdk:8.0
+    working_dir: /src
+    volumes:
+      - ./backend:/src
+    command: >
+      bash -lc "dotnet restore VeriMundi.sln &&
+      dotnet run --project src/VeriMundi.Api --urls http://0.0.0.0:5080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__VeriMundi: Host=db;Port=5432;Database=verimundi;Username=verimundi;Password=verimundi
+      Ingestion__EnableRss: 'false'
+      Ingestion__EnableGdelt: 'false'
+      App__MaintenanceMode: 'false'
+      App__MinimumAppVersion: '1.0.0'
+    ports:
+      - '5080:5080'
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  verimundi_pg:

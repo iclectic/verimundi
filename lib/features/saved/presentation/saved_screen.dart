@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/utils/date_formatters.dart';
 import '../../../shared/providers/app_providers.dart';
 import '../../../shared/widgets/async_value_view.dart';
-import '../../../shared/widgets/demo_banner.dart';
+import '../../../shared/widgets/app_status_banners.dart';
 
 class SavedScreen extends ConsumerWidget {
   const SavedScreen({super.key});
@@ -17,7 +17,7 @@ class SavedScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('Saved')),
       body: ListView(
         children: [
-          const DemoBanner(),
+          const AppStatusBanners(),
           Padding(
             padding: const EdgeInsets.all(16),
             child: AsyncValueView(

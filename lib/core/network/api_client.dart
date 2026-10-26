@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import '../constants/app_constants.dart';
+import 'retry_interceptor.dart';
 
 enum AppDataMode { mock, remote, misconfigured }
 
@@ -31,6 +32,9 @@ class ApiClient {
               headers: const {'Accept': 'application/json'},
             ),
           ) {
+    if (!AppConstants.isMockApi) {
+      this.dio.interceptors.add(RetryInterceptor());
+    }
     validateConfiguration();
   }
 

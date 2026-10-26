@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../shared/models/news_models.dart';
 import '../../../shared/providers/app_providers.dart';
 import '../../../shared/widgets/async_value_view.dart';
-import '../../../shared/widgets/demo_banner.dart';
+import '../../../shared/widgets/app_status_banners.dart';
+import '../../../shared/widgets/feed_empty_state.dart';
 import '../../../shared/widgets/story_card.dart';
 
 class PositiveNewsScreen extends ConsumerWidget {
@@ -19,11 +22,20 @@ class PositiveNewsScreen extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.only(bottom: 24),
           children: [
-            const DemoBanner(),
+            const AppStatusBanners(),
             Padding(
               padding: const EdgeInsets.all(16),
               child: AsyncValueView(
                 value: stories,
+                empty: FeedEmptyState(
+                  reason: FeedEmptyReason.noClusters,
+                  mode: FeedMode.positiveWorld,
+                  onSwitchToWorldPulse: () {
+                    ref.read(feedModeProvider.notifier).state =
+                        FeedMode.worldPulse;
+                    context.go('/');
+                  },
+                ),
                 builder: (items) => Column(
                   children: [
                     for (final story in items)

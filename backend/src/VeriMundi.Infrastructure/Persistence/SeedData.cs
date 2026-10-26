@@ -28,6 +28,37 @@ public static class SeedData
             db.Sources.AddRange(Sources());
             await db.SaveChangesAsync(cancellationToken);
         }
+        else
+        {
+            // Idempotent proposals for existing DBs — never auto-enable.
+            await EnsureProposedSourcesAsync(db, cancellationToken);
+        }
+    }
+
+    /// Adds missing proposed registry rows without enabling them or changing approvals.
+    private static async Task EnsureProposedSourcesAsync(
+        VeriMundiDbContext db,
+        CancellationToken cancellationToken)
+    {
+        var proposed = Sources()
+            .Where(s => s.LicenceStatus == LicenceStatus.Proposed)
+            .ToList();
+        foreach (var candidate in proposed)
+        {
+            var exists = await db.Sources.AnyAsync(
+                s => s.CanonicalDomain == candidate.CanonicalDomain,
+                cancellationToken);
+            if (!exists)
+            {
+                candidate.Enabled = false;
+                db.Sources.Add(candidate);
+            }
+        }
+
+        if (db.ChangeTracker.HasChanges())
+        {
+            await db.SaveChangesAsync(cancellationToken);
+        }
     }
 
     private static IEnumerable<Country> Countries() =>
@@ -155,7 +186,7 @@ public static class SeedData
             ContentUsageStatus = ContentUsageStatus.HeadlineAndLink,
             Enabled = true
         },
-        // Example restricted commercial feed placeholder — not enabled.
+        // Proposed only — never Enabled until Tubo/legal approve in source_registry.md.
         new()
         {
             Name = "Example Commercial Outlet (proposed)",
@@ -166,6 +197,65 @@ public static class SeedData
             ContentUsageStatus = ContentUsageStatus.MetadataOnly,
             Enabled = false,
             FeedUrl = "https://example-news.example/rss"
+        },
+        new()
+        {
+            Name = "UN News (proposed RSS)",
+            CanonicalDomain = "news.un.org",
+            CountryCode = null,
+            Region = null,
+            PrimaryLanguage = "en",
+            SourceType = SourceType.Wire,
+            LicenceStatus = LicenceStatus.Proposed,
+            ContentUsageStatus = ContentUsageStatus.HeadlineAndLink,
+            AttributionRequirements = "Confirm current UN News reuse / attribution terms before enablement",
+            Enabled = false,
+            WebsiteUrl = "https://news.un.org",
+            FeedUrl = "https://news.un.org/feed/subscribe/en/news/all/rss.xml"
+        },
+        new()
+        {
+            Name = "ReliefWeb headlines (proposed)",
+            CanonicalDomain = "reliefweb.int",
+            CountryCode = null,
+            Region = null,
+            PrimaryLanguage = "en",
+            SourceType = SourceType.Specialist,
+            LicenceStatus = LicenceStatus.Proposed,
+            ContentUsageStatus = ContentUsageStatus.HeadlineAndLink,
+            AttributionRequirements = "Confirm ReliefWeb API/terms for headline+link caching",
+            Enabled = false,
+            WebsiteUrl = "https://reliefweb.int",
+            FeedUrl = "https://reliefweb.int/updates/rss.xml"
+        },
+        new()
+        {
+            Name = "WHO newsroom (proposed RSS)",
+            CanonicalDomain = "who.int",
+            CountryCode = null,
+            Region = null,
+            PrimaryLanguage = "en",
+            SourceType = SourceType.Specialist,
+            LicenceStatus = LicenceStatus.Proposed,
+            ContentUsageStatus = ContentUsageStatus.HeadlineAndLink,
+            AttributionRequirements = "Confirm WHO newsroom terms before enablement",
+            Enabled = false,
+            WebsiteUrl = "https://www.who.int",
+            FeedUrl = "https://www.who.int/rss-feeds/news-english.xml"
+        },
+        new()
+        {
+            Name = "GDELT DOC 2.0 discovery (proposed)",
+            CanonicalDomain = "api.gdeltproject.org",
+            CountryCode = null,
+            Region = null,
+            PrimaryLanguage = "en",
+            SourceType = SourceType.Wire,
+            LicenceStatus = LicenceStatus.Proposed,
+            ContentUsageStatus = ContentUsageStatus.MetadataOnly,
+            AttributionRequirements = "Discovery metadata only; original publisher rights still apply",
+            Enabled = false,
+            WebsiteUrl = "https://www.gdeltproject.org"
         }
     ];
 }

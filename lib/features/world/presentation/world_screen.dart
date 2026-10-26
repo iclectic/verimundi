@@ -4,10 +4,12 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../shared/models/news_models.dart';
+import '../../../shared/models/story_filter_extensions.dart';
 import '../../../shared/providers/app_providers.dart';
 import '../../../shared/widgets/async_value_view.dart';
 import '../../../shared/widgets/cache_status_banner.dart';
-import '../../../shared/widgets/demo_banner.dart';
+import '../../../shared/widgets/app_status_banners.dart';
+import '../../../shared/widgets/feed_empty_state.dart';
 import '../../../shared/widgets/filter_bar.dart';
 import '../../../shared/widgets/story_card.dart';
 import 'world_map_view.dart';
@@ -21,6 +23,7 @@ class WorldScreen extends ConsumerWidget {
     final countriesValue = ref.watch(countriesProvider);
     final mode = ref.watch(feedModeProvider);
     final page = ref.watch(feedPageProvider);
+    final filter = ref.watch(storyFilterProvider);
     return Scaffold(
       appBar: AppBar(
         title: const Text(AppConstants.appName),
@@ -40,7 +43,7 @@ class WorldScreen extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.only(bottom: 24),
           children: [
-            const DemoBanner(),
+            const AppStatusBanners(),
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -85,12 +88,29 @@ class WorldScreen extends ConsumerWidget {
                     builder: (feed) {
                       final modeStories = _modeStories(feed.stories, mode);
                       if (modeStories.isEmpty) {
-                        return const Padding(
-                          padding: EdgeInsets.all(24),
-                          child: Text(
-                            'No stories match these filters. Reset filters or try another region.',
-                            textAlign: TextAlign.center,
-                          ),
+                        final reason = resolveFeedEmptyReason(
+                          sourceEmpty: feed.stories.isEmpty,
+                          displayedEmpty: true,
+                          filtersActive: filter.hasActiveConstraints,
+                          mode: mode,
+                          page: page,
+                        );
+                        return FeedEmptyState(
+                          reason: reason,
+                          mode: mode,
+                          onResetFilters: () {
+                            ref.read(storyFilterProvider.notifier).state =
+                                const StoryFilter();
+                            ref.read(feedPageProvider.notifier).state = 1;
+                          },
+                          onSwitchToWorldPulse: () =>
+                              ref.read(feedModeProvider.notifier).state =
+                                  FeedMode.worldPulse,
+                          onGoToPreviousPage: page > 1
+                              ? () =>
+                                    ref.read(feedPageProvider.notifier).state =
+                                        page - 1
+                              : null,
                         );
                       }
                       return Column(

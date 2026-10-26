@@ -7,6 +7,7 @@ namespace VeriMundi.Workers;
 
 public sealed class IngestionHostedService(
     IServiceScopeFactory scopeFactory,
+    IngestionMetricsStore metrics,
     ILogger<IngestionHostedService> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -20,14 +21,16 @@ public sealed class IngestionHostedService(
             {
                 using var scope = scopeFactory.CreateScope();
                 var pipeline = scope.ServiceProvider.GetRequiredService<IngestionPipeline>();
-                var result = await pipeline.RunAsync(stoppingToken);
+                var result = await pipeline.RunAsync(stoppingToken, trigger: "hosted");
                 logger.LogInformation(
-                    "Ingestion cycle complete. Articles={Articles} ClusterOps={ClusterOps}",
+                    "Hosted ingestion cycle recorded. Articles={Articles} DurationMs={DurationMs} Failures={Failures}",
                     result.ArticlesIngested,
-                    result.ClusterOperations);
+                    result.DurationMs,
+                    result.ProviderFailures);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
+                metrics.RecordFailure("hosted", ex);
                 logger.LogError(ex, "Ingestion cycle failed");
             }
 

@@ -28,4 +28,17 @@ public class ApiSmokeTests : IClassFixture<WebApplicationFactory<Program>>
         var response = await client.GetAsync("/health");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
+
+    [Fact]
+    public async Task App_config_endpoint_is_mapped()
+    {
+        var client = _factory.CreateClient();
+        var response = await client.GetAsync("/v1/app/config");
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var json = await response.Content.ReadAsStringAsync();
+        json.Should().Contain("maintenanceMode");
+        json.Should().Contain("minimumAppVersion");
+        json.Should().Contain("enableRss");
+        json.Should().Contain("enableGdelt");
+    }
 }

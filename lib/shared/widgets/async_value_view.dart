@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/network/remote_api_exception.dart';
+
 class AsyncValueView<T> extends StatelessWidget {
   const AsyncValueView({
     required this.value,
@@ -27,16 +29,30 @@ class AsyncValueView<T> extends StatelessWidget {
         return builder(data);
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stackTrace) => _StateMessage(
-        icon: Icons.error_outline,
-        message: 'Something went wrong. Pull to refresh or try again.',
-        detail: _friendlyError(error),
-      ),
+      error: (error, stackTrace) => _errorView(error),
+    );
+  }
+
+  Widget _errorView(Object error) {
+    if (error is RemoteApiException) {
+      return _StateMessage(
+        icon: error.icon,
+        message: error.title,
+        detail: '${error.message}\n${error.recoveryHint}',
+      );
+    }
+    return _StateMessage(
+      icon: Icons.error_outline,
+      message: 'Something went wrong. Pull to refresh or try again.',
+      detail: _friendlyError(error),
     );
   }
 
   String _friendlyError(Object error) {
     if (error is StateError) {
+      return error.message;
+    }
+    if (error is RemoteApiException) {
       return error.message;
     }
     return error.toString();

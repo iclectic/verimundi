@@ -14,15 +14,36 @@ public sealed class IngestionPipeline(
     IEnumerable<INewsProvider> providers,
     StoryClusteringService clustering,
     IAiSynthesisService ai,
+    IngestionMetricsStore metrics,
     ILogger<IngestionPipeline> logger)
 {
-    public async Task<IngestionResult> RunAsync(CancellationToken cancellationToken = default)
+    public async Task<IngestionResult> RunAsync(
+        CancellationToken cancellationToken = default,
+        string trigger = "manual")
     {
+        var startedAt = DateTimeOffset.UtcNow;
         var ingested = 0;
         var clustered = 0;
+        var clustersCreated = 0;
+        var clustersAttached = 0;
+        var duplicatesSkipped = 0;
+        var unapprovedSkipped = 0;
+        var restrictedSkipped = 0;
+        var providerFailures = 0;
+        var providersAttempted = 0;
+        var articlesFetched = 0;
+        var proposedSourcesCreated = 0;
+        var synthesesRun = 0;
+
+        using var scope = logger.BeginScope(new Dictionary<string, object>
+        {
+            ["ingestion.trigger"] = trigger,
+            ["ingestion.startedAt"] = startedAt
+        });
 
         foreach (var provider in providers)
         {
+            providersAttempted++;
             IReadOnlyList<Application.Ingestion.IngestedArticle> batch;
             try
             {
@@ -30,20 +51,34 @@ public sealed class IngestionPipeline(
             }
             catch (Exception ex)
             {
+                providerFailures++;
                 logger.LogError(ex, "Provider {Provider} failed", provider.Name);
                 continue;
             }
 
+            articlesFetched += batch.Count;
+            logger.LogInformation(
+                "Provider {Provider} returned {Count} candidate articles",
+                provider.Name,
+                batch.Count);
+
             foreach (var item in batch)
             {
-                var source = await ResolveSourceAsync(item, cancellationToken);
+                var (source, proposed) = await ResolveSourceAsync(item, cancellationToken);
+                if (proposed)
+                {
+                    proposedSourcesCreated++;
+                }
+
                 if (source is null || source.LicenceStatus is LicenceStatus.Rejected or LicenceStatus.Restricted)
                 {
+                    restrictedSkipped++;
                     continue;
                 }
 
                 if (source.LicenceStatus != LicenceStatus.Approved && provider.Name != "fixture")
                 {
+                    unapprovedSkipped++;
                     continue;
                 }
 
@@ -52,6 +87,7 @@ public sealed class IngestionPipeline(
                 var existing = await db.Articles.FirstOrDefaultAsync(a => a.CanonicalHash == canonicalHash, cancellationToken);
                 if (existing is not null)
                 {
+                    duplicatesSkipped++;
                     continue;
                 }
 
@@ -76,17 +112,74 @@ public sealed class IngestionPipeline(
                 await db.SaveChangesAsync(cancellationToken);
                 ingested++;
 
-                var story = await AttachOrCreateClusterAsync(article, source, item.RegionHint, item.CategoryHint, cancellationToken);
+                var (story, created) = await AttachOrCreateClusterAsync(
+                    article,
+                    source,
+                    item.RegionHint,
+                    item.CategoryHint,
+                    cancellationToken);
                 clustered++;
+                if (created)
+                {
+                    clustersCreated++;
+                }
+                else
+                {
+                    clustersAttached++;
+                }
 
-                await SynthesiseIfNeededAsync(story, cancellationToken);
+                if (await SynthesiseIfNeededAsync(story, cancellationToken))
+                {
+                    synthesesRun++;
+                }
             }
         }
 
-        return new IngestionResult(ingested, clustered);
+        var completedAt = DateTimeOffset.UtcNow;
+        var result = new IngestionResult(
+            ArticlesIngested: ingested,
+            ClusterOperations: clustered,
+            ClustersCreated: clustersCreated,
+            ClustersAttached: clustersAttached,
+            DuplicatesSkipped: duplicatesSkipped,
+            UnapprovedSkipped: unapprovedSkipped,
+            RestrictedSkipped: restrictedSkipped,
+            ProviderFailures: providerFailures,
+            ProvidersAttempted: providersAttempted,
+            ArticlesFetched: articlesFetched,
+            ProposedSourcesCreated: proposedSourcesCreated,
+            SynthesesRun: synthesesRun,
+            DurationMs: (int)(completedAt - startedAt).TotalMilliseconds,
+            StartedAt: startedAt,
+            CompletedAt: completedAt,
+            Trigger: trigger);
+
+        metrics.RecordSuccess(result);
+        logger.LogInformation(
+            "Ingestion cycle complete. Trigger={Trigger} DurationMs={DurationMs} " +
+            "Fetched={Fetched} Ingested={Ingested} Duplicates={Duplicates} " +
+            "Unapproved={Unapproved} Restricted={Restricted} " +
+            "ClustersCreated={ClustersCreated} ClustersAttached={ClustersAttached} " +
+            "Syntheses={Syntheses} ProviderFailures={ProviderFailures}/{ProvidersAttempted} " +
+            "ProposedSources={ProposedSources}",
+            result.Trigger,
+            result.DurationMs,
+            result.ArticlesFetched,
+            result.ArticlesIngested,
+            result.DuplicatesSkipped,
+            result.UnapprovedSkipped,
+            result.RestrictedSkipped,
+            result.ClustersCreated,
+            result.ClustersAttached,
+            result.SynthesesRun,
+            result.ProviderFailures,
+            result.ProvidersAttempted,
+            result.ProposedSourcesCreated);
+
+        return result;
     }
 
-    private async Task<Source?> ResolveSourceAsync(
+    private async Task<(Source? Source, bool ProposedCreated)> ResolveSourceAsync(
         Application.Ingestion.IngestedArticle item,
         CancellationToken cancellationToken)
     {
@@ -94,7 +187,7 @@ public sealed class IngestionPipeline(
         var source = await db.Sources.FirstOrDefaultAsync(s => s.CanonicalDomain == domain, cancellationToken);
         if (source is not null)
         {
-            return source;
+            return (source, false);
         }
 
         // Auto-propose unknown domains; never auto-approve.
@@ -110,10 +203,10 @@ public sealed class IngestionPipeline(
         };
         db.Sources.Add(source);
         await db.SaveChangesAsync(cancellationToken);
-        return source;
+        return (source, true);
     }
 
-    private async Task<StoryCluster> AttachOrCreateClusterAsync(
+    private async Task<(StoryCluster Story, bool Created)> AttachOrCreateClusterAsync(
         Article article,
         Source source,
         string? regionHint,
@@ -139,6 +232,7 @@ public sealed class IngestionPipeline(
             clustering.Hash($"{normalised}|{(article.PublishedAt ?? article.DiscoveredAt):yyyy-MM-dd}|{country}|{region}") == key);
 
         var coverage = clustering.InferCoverageClass(source, country);
+        var created = false;
 
         if (match is null)
         {
@@ -165,6 +259,7 @@ public sealed class IngestionPipeline(
             };
             db.Stories.Add(match);
             await db.SaveChangesAsync(cancellationToken);
+            created = true;
         }
 
         if (match.ArticleLinks.All(l => l.ArticleId != article.Id))
@@ -180,8 +275,9 @@ public sealed class IngestionPipeline(
         }
 
         await RefreshCoverageCountsAsync(match.Id, cancellationToken);
-        return (await db.Stories.Include(s => s.ArticleLinks).ThenInclude(l => l.Article!).ThenInclude(a => a.Source)
-            .FirstAsync(s => s.Id == match.Id, cancellationToken));
+        var story = await db.Stories.Include(s => s.ArticleLinks).ThenInclude(l => l.Article!).ThenInclude(a => a.Source)
+            .FirstAsync(s => s.Id == match.Id, cancellationToken);
+        return (story, created);
     }
 
     private async Task RefreshCoverageCountsAsync(Guid storyId, CancellationToken cancellationToken)
@@ -218,11 +314,11 @@ public sealed class IngestionPipeline(
         await db.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task SynthesiseIfNeededAsync(StoryCluster story, CancellationToken cancellationToken)
+    private async Task<bool> SynthesiseIfNeededAsync(StoryCluster story, CancellationToken cancellationToken)
     {
         if (!string.IsNullOrWhiteSpace(story.ShortSummary) && !story.InsufficientEvidence)
         {
-            return;
+            return false;
         }
 
         var links = await db.StoryArticleLinks
@@ -286,6 +382,7 @@ public sealed class IngestionPipeline(
         }
 
         await db.SaveChangesAsync(cancellationToken);
+        return true;
     }
 
     private static StoryCategory ParseCategory(string? hint)
@@ -300,5 +397,3 @@ public sealed class IngestionPipeline(
             : StoryCategory.Other;
     }
 }
-
-public sealed record IngestionResult(int ArticlesIngested, int ClusterOperations);

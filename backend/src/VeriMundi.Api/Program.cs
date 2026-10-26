@@ -11,9 +11,13 @@ using VeriMundi.Infrastructure;
 using VeriMundi.Infrastructure.Ingestion;
 using VeriMundi.Infrastructure.Persistence;
 using VeriMundi.Api.Middleware;
+using VeriMundi.Api.Options;
+using VeriMundi.Api.Security;
+using VeriMundi.Api.Telemetry;
 using VeriMundi.Workers;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.AddVeriMundiTelemetry();
 
 var fixturePath = Path.Combine(builder.Environment.ContentRootPath, "Fixtures", "seed_articles.json");
 builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
@@ -21,6 +25,8 @@ builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
     ["Ingestion:FixturePath"] = fixturePath
 });
 
+builder.Services.Configure<AppOptions>(builder.Configuration.GetSection(AppOptions.SectionName));
+builder.Services.Configure<OpsAuthOptions>(builder.Configuration.GetSection(OpsAuthOptions.SectionName));
 builder.Services.AddVeriMundiInfrastructure(builder.Configuration);
 var isTesting = builder.Environment.IsEnvironment("Testing");
 if (!isTesting)
@@ -41,6 +47,7 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+app.MapVeriMundiTelemetry();
 
 app.UseCors();
 app.UseMiddleware<SimpleRateLimitMiddleware>();
@@ -56,6 +63,37 @@ app.Use(async (context, next) =>
         context.Response.StatusCode,
         elapsed.TotalMilliseconds);
 });
+
+// Maintenance mode blocks product routes; health/ready/config/admin stay available
+// (admin still requires the ops token gate on the endpoint itself).
+app.Use(async (context, next) =>
+{
+    var path = context.Request.Path.Value ?? string.Empty;
+    var isOpsProbe =
+        path.Equals("/health", StringComparison.OrdinalIgnoreCase) ||
+        path.Equals("/ready", StringComparison.OrdinalIgnoreCase) ||
+        path.Equals("/v1/app/config", StringComparison.OrdinalIgnoreCase) ||
+        path.StartsWith("/v1/admin", StringComparison.OrdinalIgnoreCase) ||
+        path.Equals("/metrics", StringComparison.OrdinalIgnoreCase) ||
+        path.StartsWith("/swagger", StringComparison.OrdinalIgnoreCase);
+
+    if (!isOpsProbe)
+    {
+        var options = context.RequestServices.GetRequiredService<Microsoft.Extensions.Options.IOptions<AppOptions>>().Value;
+        if (options.MaintenanceMode)
+        {
+            context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+            context.Response.Headers.RetryAfter = "120";
+            await context.Response.WriteAsJsonAsync(new ApiError(
+                "maintenance",
+                options.MaintenanceMessage ?? "Maintenance mode is enabled."));
+            return;
+        }
+    }
+
+    await next();
+});
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -69,7 +107,7 @@ if (!app.Environment.IsEnvironment("Testing"))
     var db = scope.ServiceProvider.GetRequiredService<VeriMundiDbContext>();
     await SeedData.InitialiseAsync(db);
     var pipeline = scope.ServiceProvider.GetRequiredService<IngestionPipeline>();
-    await pipeline.RunAsync();
+    await pipeline.RunAsync(trigger: "startup");
 }
 
 var api = app.MapGroup("/v1");
@@ -464,13 +502,98 @@ api.MapPost("/stories/{storyId}/reports", async (
         new ReportResponse(reportId.ToString(), DateTimeOffset.UtcNow, "received"));
 });
 
-api.MapPost("/admin/ingestion/run", async (IngestionPipeline pipeline) =>
+api.MapPost("/admin/ingestion/run", async (
+    HttpRequest request,
+    IngestionPipeline pipeline,
+    IngestionMetricsStore metrics,
+    Microsoft.Extensions.Options.IOptions<OpsAuthOptions> opsOptions,
+    IHostEnvironment env) =>
 {
-    var result = await pipeline.RunAsync();
-    return Results.Ok(result);
+    if (!OpsAdminAuth.TryAuthorize(request, opsOptions.Value, env, out var failure))
+    {
+        return failure!;
+    }
+
+    try
+    {
+        var result = await pipeline.RunAsync(trigger: "admin");
+        return Results.Ok(result);
+    }
+    catch (Exception ex)
+    {
+        metrics.RecordFailure("admin", ex);
+        return Results.Json(
+            new ApiError(
+                "ingestion_unavailable",
+                "Ingestion pipeline failed.",
+                Detail: ex.GetType().Name),
+            statusCode: StatusCodes.Status503ServiceUnavailable);
+    }
 });
 
-app.MapGet("/health", () => Results.Ok(new { status = "ok", at = DateTimeOffset.UtcNow }));
+api.MapGet("/admin/ingestion/metrics", (
+    HttpRequest request,
+    IngestionMetricsStore metrics,
+    Microsoft.Extensions.Options.IOptions<OpsAuthOptions> opsOptions,
+    IHostEnvironment env) =>
+{
+    if (!OpsAdminAuth.TryAuthorize(request, opsOptions.Value, env, out var failure))
+    {
+        return failure!;
+    }
+
+    return Results.Ok(metrics.Snapshot());
+});
+
+app.MapGet("/health", () => Results.Ok(new
+{
+    status = "ok",
+    at = DateTimeOffset.UtcNow
+}));
+
+app.MapGet("/ready", async (VeriMundiDbContext db) =>
+{
+    try
+    {
+        var canConnect = await db.Database.CanConnectAsync();
+        if (!canConnect)
+        {
+            return Results.Json(
+                new { status = "not_ready", reason = "database_unreachable", at = DateTimeOffset.UtcNow },
+                statusCode: StatusCodes.Status503ServiceUnavailable);
+        }
+
+        return Results.Ok(new { status = "ready", at = DateTimeOffset.UtcNow });
+    }
+    catch (Exception ex)
+    {
+        return Results.Json(
+            new { status = "not_ready", reason = ex.GetType().Name, at = DateTimeOffset.UtcNow },
+            statusCode: StatusCodes.Status503ServiceUnavailable);
+    }
+});
+
+api.MapGet("/app/config", (
+    Microsoft.Extensions.Options.IOptions<AppOptions> options,
+    IHostEnvironment env,
+    IConfiguration configuration) =>
+{
+    var appOptions = options.Value;
+    return Results.Ok(new
+    {
+        environment = env.EnvironmentName,
+        maintenanceMode = appOptions.MaintenanceMode,
+        maintenanceMessage = appOptions.MaintenanceMessage,
+        minimumAppVersion = appOptions.MinimumAppVersion,
+        ingestion = new
+        {
+            enableRss = string.Equals(configuration["Ingestion:EnableRss"], "true", StringComparison.OrdinalIgnoreCase),
+            enableGdelt = string.Equals(configuration["Ingestion:EnableGdelt"], "true", StringComparison.OrdinalIgnoreCase)
+        },
+        disclaimer =
+            "VeriMundi is designed to broaden regional and source visibility. Story selection, classification and AI-generated summaries remain imperfect and should be considered alongside the original reporting."
+    });
+});
 
 app.Run();
 

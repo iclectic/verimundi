@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:verimundi/core/network/api_client.dart';
+import 'package:verimundi/core/network/remote_api_exception.dart';
 import 'package:verimundi/features/stories/data/remote_news_repository.dart';
 import 'package:verimundi/shared/models/news_models.dart';
 
@@ -59,6 +60,32 @@ void main() {
     expect(stories.first.independentSourceCount, 3);
     expect(stories.first.isDemoContent, isFalse);
   });
+
+  test(
+    'remote repository maps maintenance responses to RemoteApiException',
+    () async {
+      final dio = Dio()
+        ..httpClientAdapter = _StatusAdapter(
+          statusCode: 503,
+          body: {
+            'code': 'maintenance',
+            'message': 'VeriMundi is temporarily unavailable for maintenance.',
+          },
+        );
+
+      final repository = RemoteNewsRepository(client: ApiClient(dio: dio));
+      expect(
+        () => repository.getStories(const StoryFilter()),
+        throwsA(
+          isA<RemoteApiException>().having(
+            (e) => e.kind,
+            'kind',
+            RemoteApiErrorKind.maintenance,
+          ),
+        ),
+      );
+    },
+  );
 }
 
 class _FakeAdapter implements HttpClientAdapter {
@@ -82,6 +109,31 @@ class _FakeAdapter implements HttpClientAdapter {
     return ResponseBody.fromString(
       jsonEncode(payload),
       200,
+      headers: {
+        Headers.contentTypeHeader: [Headers.jsonContentType],
+      },
+    );
+  }
+}
+
+class _StatusAdapter implements HttpClientAdapter {
+  _StatusAdapter({required this.statusCode, required this.body});
+
+  final int statusCode;
+  final Map<String, dynamic> body;
+
+  @override
+  void close({bool force = false}) {}
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<List<int>>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    return ResponseBody.fromString(
+      jsonEncode(body),
+      statusCode,
       headers: {
         Headers.contentTypeHeader: [Headers.jsonContentType],
       },

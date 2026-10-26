@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:verimundi/core/network/remote_api_exception.dart';
 import 'package:verimundi/shared/widgets/async_value_view.dart';
 
 void main() {
@@ -27,6 +28,35 @@ void main() {
       find.text('Remote backend unavailable for this release.'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('AsyncValueView shows typed RemoteApiException copy', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: AsyncValueView<List<String>>(
+            value: AsyncError(
+              const RemoteApiException(
+                kind: RemoteApiErrorKind.offline,
+                message: 'Unable to reach http://localhost:5080.',
+                code: 'offline',
+              ),
+              StackTrace.empty,
+            ),
+            builder: _NeverBuild.new,
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Unable to reach VeriMundi'), findsOneWidget);
+    expect(
+      find.textContaining('Unable to reach http://localhost:5080.'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('Check your connection'), findsOneWidget);
   });
 }
 

@@ -30,9 +30,22 @@ flutter build appbundle \
   --dart-define=NEWS_API_BASE_URL=https://api.example.com
 ```
 
+## Local probe script
+
+From the repo root:
+
+```bash
+chmod +x scripts/check_android_sdk.sh
+./scripts/check_android_sdk.sh
+```
+
+Exit `0` when a usable Android toolchain is detected; exit `1` with pointers to this doc when blocked (including the current Cloud Agent image).
+
 ## What remains ready without SDK
 
 - Flutter analyze/test suite
 - Backend build/test
-- Release runbooks under `docs/release/`
+- Release runbooks under `docs/release/` (including `staging_flutter_api_smoke.md` via chrome/linux)
 - Data Safety / privacy drafts for legal review
+- `scripts/check_android_sdk.sh` for hosts that later gain an SDK
+- `scripts/staging_api_smoke.sh` for API-only curl checks

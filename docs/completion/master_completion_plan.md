@@ -304,20 +304,136 @@ Working rule: implement sequentially; leave the repository functional after ever
 | --- | --- |
 | 0 | **Done** — AGENTS.md, audit, completion docs, tooling baseline green |
 | 1 | **Done** — ASP.NET Core modular monolith + Postgres + `/v1` + OpenAPI |
-| 2 | **Done (fixture path)** — Fixture ingestion live; RSS provider present, off by default |
-| 3 | **Done (initial)** — `docs/sources/source_registry.md` + DB seed + approval gating |
+| 2 | **Done (fixture path)** — Fixture ingestion live; RSS provider present, off by default; GDELT discovery scaffold gated (`EnableGdelt=false`) |
+| 3 | **Done (initial + proposals)** — Registry + DB seed + approval gating; UN/ReliefWeb/WHO/GDELT rows seeded as **proposed/disabled** with idempotent upsert |
 | 4 | **Done (v1)** — URL/hash dedupe + headline/day/country clustering + independent counts |
 | 5 | **Done (v1)** — Underreported + World Pulse ranker + methodology docs |
 | 6 | **Done (heuristic)** — `IAiSynthesisService` + heuristic provider (no GenAI key required) |
-| 7 | **Done** — `RemoteNewsRepository`, `APP_ENV`, production/mock guard, remote Ask |
-| 8 | **Done (v1)** — Interactive map, severity legend+icons, accessible country list, region navigation; full GeoJSON choropleth still externally blocked |
-| 9 | **Done (v1)** — Debounced search, richer filters, active chips, empty state, page controls |
+| 7 | **Done + hardened** — Remote client + `/ready` + `/v1/app/config` + maintenance middleware + Flutter retries (no 503 retry) + maintenance/min-version banners + settings readiness + **typed `RemoteApiException` taxonomy** (maintenance/rate-limit/timeout/offline/server) wired through repository, feeds, Ask, and report |
+| 8 | **Done (v1 + list a11y polish)** — Interactive map + searchable/sortable country list (severity chips, active-only, live counts); GeoJSON choropleth still blocked — see `docs/architecture/map_geojson.md` |
+| 9 | **Done (v1)** — Debounced search, richer filters, active chips, empty state, page controls; **empty-state polish** distinguishes no clusters / filtered out / mode empty / end of pages |
 | 10 | **Done (v1)** — Drift feed metadata cache with fresh/stale/expired labels; saved snapshot age notice |
 | 11 | **Done (draft)** — Privacy/Data Safety updated for dual mode; report API + rate limit; legal review still external |
-| 12 | **Done (v1)** — Timeline, save/report actions, British English empty copy, map a11y |
-| 13 | **Done (v1)** — Extra Flutter tests; backend CI workflow; request logging middleware |
-| 14 | **Blocked externally** — No Android SDK/`ANDROID_HOME`; see `docs/release/android_sdk_blocker.md` |
-| 15 | **Done (docs)** — `docs/portfolio/engineering_evidence.md` (screenshots still need a device/SDK host) |
+| 12 | **Done (v1)** — Timeline, save/report actions, British English empty copy, map a11y; shared `FeedEmptyState`; country-list search/sort/severity filters (not colour alone) |
+| 13 | **Done (v1)** — Extra Flutter tests; backend CI; request logging; docker-compose; **ops auth gate**; **ingestion metrics** + optional **Prometheus `/metrics`** (`Telemetry:EnablePrometheus`) |
+| 14 | **Blocked externally** — No Android SDK/`ANDROID_HOME`; probe via `scripts/check_android_sdk.sh` |
+| 15 | **Done (docs)** — `docs/portfolio/engineering_evidence.md` refreshed for ops-auth/metrics/telemetry continue work (screenshots still need a device/SDK host) |
 | §26+ | Blocked on complete brief — notifications not invented |
+
+### Post–PR #1 continue milestone (live-path hardening)
+
+**Implementable work completed on branch `cursor/verimundi-live-path-hardening-b049` (uncommitted unless later authorised):**
+
+- `docker-compose.yml` for local Postgres + API
+- `GET /ready`, `GET /v1/app/config`, `App:*` options, maintenance `503` middleware
+- Flutter `RetryInterceptor`, `AppRemoteConfig`, `AppStatusBanners` / settings remote readiness
+- Expanded **proposed** source registry + seed scaffolding (still disabled)
+- Map GeoJSON blocker doc; Android SDK check script
+
+### Continue slice: remote error taxonomy (2026-10-26)
+
+**Chosen next item:** typed remote API error taxonomy (Phase 7 polish) — highest-value product/engineering work not blocked on Tubo/SDK/keys/§26.
+
+**Delivered (still uncommitted):**
+
+- `RemoteApiException` + kinds; Dio mapper; repository throws typed errors
+- `AsyncValueView` kind-specific titles/icons/recovery hints
+- Ask + report surfaces use the same taxonomy
+- Rate-limit middleware returns JSON `{code: rate_limited, message}` + Retry-After
+- Contract table + unit/widget coverage
+
+### Continue slice: feed empty-state polish (2026-10-26)
+
+**Chosen next item:** empty-state polish for zero remote clusters vs filters (Phases 9/12) — licence-safe, unblocked.
+
+**Delivered (still uncommitted):**
+
+- `FeedEmptyReason` + `resolveFeedEmptyReason` (noClusters / filteredOut / modeEmpty / endOfPages)
+- Shared `FeedEmptyState` with reset / World Pulse / previous-page actions
+- World, Underreported, Positive screens wired; underreported applies `StoryFiltering`
+- `StoryFilter.hasActiveConstraints` + tests
+
+### Continue slice: map country-list a11y polish (2026-10-26)
+
+**Chosen next item:** Phase 8/12 country-list accessibility polish — no GeoJSON dependency.
+
+**Delivered (still uncommitted):**
+
+- Country list search (name/code/region), sort (severity / name / active stories)
+- Active-only + severity FilterChips (icon + text), live result count
+- Empty list reset (+ clear region when a region chip is active)
+- Title switches to “Country list”; region chip group labelled for AT
+- Tests expanded in `world_map_accessibility_test.dart`; `map_geojson.md` updated
+
+### Continue slice: admin ops auth gate (2026-10-26)
+
+**Branch:** `cursor/verimundi-admin-ops-auth-b049` (from hardening tip `ed7bb4d`; live-path PR not yet on `main`).
+
+**Chosen next item:** ops auth gate on `POST /v1/admin/ingestion/run`.
+
+**Delivered (uncommitted unless later authorised):**
+
+- `OpsAuthOptions` + `OpsAdminAuth` (header / Bearer, fixed-time compare)
+- Fail closed when token empty outside Development/Testing; open locally when unset
+- Admin path exempt from maintenance middleware (still token-gated)
+- Docs: API contract, backend README, docker-compose env stub
+- Integration/unit-style coverage in `OpsAdminAuthTests`
+
+### Continue slice: staging Flutter→API smoke runbook (2026-10-26)
+
+**Chosen next item:** staging smoke runbook (no secrets in repo).
+
+**Delivered (uncommitted on `cursor/verimundi-admin-ops-auth-b049`):**
+
+- `docs/release/staging_flutter_api_smoke.md` — curl + Flutter remote checklist, ops token via env, honesty/empty/maintenance drills
+- `scripts/staging_api_smoke.sh` — env-driven curl smoke (`STAGING_API_BASE_URL`, optional ops token)
+- Cross-links from backend README + Android SDK blocker doc
+
+### Continue slice: ingestion metrics/logging counters (2026-10-26)
+
+**Chosen next item:** ingestion run metrics + structured logging counters.
+
+**Delivered (uncommitted on `cursor/verimundi-admin-ops-auth-b049`):**
+
+- Expanded `IngestionResult` counters (fetched, duplicates, unapproved/restricted skips, clusters created/attached, synthesises, provider failures, duration, trigger)
+- `IngestionMetricsStore` process-local totals + last run; recorded by pipeline / hosted failure path
+- Structured completion logs; `GET /v1/admin/ingestion/metrics` (ops-gated)
+- Unit + integration coverage; docs/runbook/README updated
+
+### Continue slice: OTEL / Prometheus export (2026-10-26)
+
+**Chosen next item:** optional OpenTelemetry meters + Prometheus scrape for ingestion counters.
+
+**Delivered (uncommitted on `cursor/verimundi-admin-ops-auth-b049`):**
+
+- `IngestionTelemetry` System.Diagnostics.Metrics instruments (wired from `IngestionMetricsStore`)
+- `Telemetry:EnablePrometheus` / `Telemetry__EnablePrometheus` → `GET /metrics` (default off)
+- OpenTelemetry.Extensions.Hosting + Prometheus AspNetCore exporter (OTLP package omitted due to advisory)
+- `docs/architecture/telemetry.md`; API/README/compose updates; integration tests
+
+### Continue slice: portfolio evidence refresh + decision gate (2026-10-26)
+
+**Assessment:** High-value **unblocked** engineering items from the post–PR #1 continue chain are complete (live-path, errors, empty states, map list a11y, ops auth, staging runbook, ingestion metrics, Prometheus). No further product scope invented.
+
+**Delivered this check:** refreshed `docs/portfolio/engineering_evidence.md` to match the dirty ops-auth stack (docs-only accuracy, Phase 15).
+
+**Next action (not inventable here):** Tubo authorises **commit/push/PR** of:
+1. `cursor/verimundi-live-path-hardening-b049` (already pushed @ `ed7bb4d`) merge into `main`, and/or  
+2. `cursor/verimundi-admin-ops-auth-b049` (dirty: ops auth + runbook + metrics + Prometheus).
+
+**Still external / Tubo decisions (required before more product work):**
+
+| Decision | Blocks |
+| --- | --- |
+| Approve / restrict / reject proposed sources (UN, ReliefWeb, WHO, GDELT, …) | Live RSS/GDELT enablement |
+| Production GenAI key + cost controls | Non-heuristic synthesis |
+| Privacy / Play Data Safety legal sign-off | Store submission honesty |
+| Product licence for public distribution | README / release posture |
+| Full brief §26+ (notifications) | Push product — **do not invent** |
+| Android SDK + signing host | Phase 14 APK/AAB verification |
+| Licence-safe GeoJSON | True choropleth map |
+| Staging API base URL | Executing the smoke runbook end-to-end |
+| OTLP NuGet advisory clearance | Optional OTLP exporter (Prometheus scrape already available) |
+| Commit/push authorisation for dirty ops-auth stack | PR of current work |
 
 **Not committed / not pushed** (per authorisation gate).

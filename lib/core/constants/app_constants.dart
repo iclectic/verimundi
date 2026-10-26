@@ -3,8 +3,11 @@ class AppConstants {
 
   static const appName = 'VeriMundi';
   static const tagline = 'The world beyond the usual headlines';
+  static const appVersion = '1.0.0';
   static const demoBanner =
       'Demo MVP: Stories, sources, and AI answers in this build are fictional demo content for product evaluation.';
+  static const productHonesty =
+      'VeriMundi summaries remain imperfect and should be read alongside original reporting. Live feeds require approved sources.';
   static const releaseStatus =
       'Mock or remote modes available. Production builds must set APP_ENV=production with a live NEWS_API_BASE_URL — silent mock fallback is forbidden.';
   static const apiBaseUrl = String.fromEnvironment(

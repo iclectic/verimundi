@@ -144,8 +144,15 @@ public class OpsAdminAuthTests
         var client = factory.CreateClient();
         client.DefaultRequestHeaders.Add(OpsAdminAuth.HeaderName, "integration-ops-token");
         var response = await client.PostAsync("/v1/admin/ingestion/run", content: null);
-        // Auth must pass; pipeline may still fail without Postgres in Testing.
+        // Auth must pass; without Postgres in Testing the pipeline returns 503 instead of throwing.
         response.StatusCode.Should().NotBe(HttpStatusCode.Unauthorized);
+        response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.ServiceUnavailable);
+        if (response.StatusCode == HttpStatusCode.ServiceUnavailable)
+        {
+            var json = await response.Content.ReadAsStringAsync();
+            using var doc = JsonDocument.Parse(json);
+            doc.RootElement.GetProperty("code").GetString().Should().Be("ingestion_unavailable");
+        }
     }
 
     [Fact]

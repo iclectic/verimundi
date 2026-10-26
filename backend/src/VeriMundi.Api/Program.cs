@@ -522,7 +522,12 @@ api.MapPost("/admin/ingestion/run", async (
     catch (Exception ex)
     {
         metrics.RecordFailure("admin", ex);
-        throw;
+        return Results.Json(
+            new ApiError(
+                "ingestion_unavailable",
+                "Ingestion pipeline failed.",
+                Detail: ex.GetType().Name),
+            statusCode: StatusCodes.Status503ServiceUnavailable);
     }
 });
 

@@ -12,9 +12,12 @@ using VeriMundi.Infrastructure.Ingestion;
 using VeriMundi.Infrastructure.Persistence;
 using VeriMundi.Api.Middleware;
 using VeriMundi.Api.Options;
+using VeriMundi.Api.Security;
+using VeriMundi.Api.Telemetry;
 using VeriMundi.Workers;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.AddVeriMundiTelemetry();
 
 var fixturePath = Path.Combine(builder.Environment.ContentRootPath, "Fixtures", "seed_articles.json");
 builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
@@ -23,6 +26,7 @@ builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
 });
 
 builder.Services.Configure<AppOptions>(builder.Configuration.GetSection(AppOptions.SectionName));
+builder.Services.Configure<OpsAuthOptions>(builder.Configuration.GetSection(OpsAuthOptions.SectionName));
 builder.Services.AddVeriMundiInfrastructure(builder.Configuration);
 var isTesting = builder.Environment.IsEnvironment("Testing");
 if (!isTesting)
@@ -43,6 +47,7 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+app.MapVeriMundiTelemetry();
 
 app.UseCors();
 app.UseMiddleware<SimpleRateLimitMiddleware>();
@@ -59,7 +64,8 @@ app.Use(async (context, next) =>
         elapsed.TotalMilliseconds);
 });
 
-// Maintenance mode blocks read/write product routes; health/ready/config stay available.
+// Maintenance mode blocks product routes; health/ready/config/admin stay available
+// (admin still requires the ops token gate on the endpoint itself).
 app.Use(async (context, next) =>
 {
     var path = context.Request.Path.Value ?? string.Empty;
@@ -67,6 +73,8 @@ app.Use(async (context, next) =>
         path.Equals("/health", StringComparison.OrdinalIgnoreCase) ||
         path.Equals("/ready", StringComparison.OrdinalIgnoreCase) ||
         path.Equals("/v1/app/config", StringComparison.OrdinalIgnoreCase) ||
+        path.StartsWith("/v1/admin", StringComparison.OrdinalIgnoreCase) ||
+        path.Equals("/metrics", StringComparison.OrdinalIgnoreCase) ||
         path.StartsWith("/swagger", StringComparison.OrdinalIgnoreCase);
 
     if (!isOpsProbe)
@@ -99,7 +107,7 @@ if (!app.Environment.IsEnvironment("Testing"))
     var db = scope.ServiceProvider.GetRequiredService<VeriMundiDbContext>();
     await SeedData.InitialiseAsync(db);
     var pipeline = scope.ServiceProvider.GetRequiredService<IngestionPipeline>();
-    await pipeline.RunAsync();
+    await pipeline.RunAsync(trigger: "startup");
 }
 
 var api = app.MapGroup("/v1");
@@ -494,10 +502,42 @@ api.MapPost("/stories/{storyId}/reports", async (
         new ReportResponse(reportId.ToString(), DateTimeOffset.UtcNow, "received"));
 });
 
-api.MapPost("/admin/ingestion/run", async (IngestionPipeline pipeline) =>
+api.MapPost("/admin/ingestion/run", async (
+    HttpRequest request,
+    IngestionPipeline pipeline,
+    IngestionMetricsStore metrics,
+    Microsoft.Extensions.Options.IOptions<OpsAuthOptions> opsOptions,
+    IHostEnvironment env) =>
 {
-    var result = await pipeline.RunAsync();
-    return Results.Ok(result);
+    if (!OpsAdminAuth.TryAuthorize(request, opsOptions.Value, env, out var failure))
+    {
+        return failure!;
+    }
+
+    try
+    {
+        var result = await pipeline.RunAsync(trigger: "admin");
+        return Results.Ok(result);
+    }
+    catch (Exception ex)
+    {
+        metrics.RecordFailure("admin", ex);
+        throw;
+    }
+});
+
+api.MapGet("/admin/ingestion/metrics", (
+    HttpRequest request,
+    IngestionMetricsStore metrics,
+    Microsoft.Extensions.Options.IOptions<OpsAuthOptions> opsOptions,
+    IHostEnvironment env) =>
+{
+    if (!OpsAdminAuth.TryAuthorize(request, opsOptions.Value, env, out var failure))
+    {
+        return failure!;
+    }
+
+    return Results.Ok(metrics.Snapshot());
 });
 
 app.MapGet("/health", () => Results.Ok(new

@@ -33,6 +33,10 @@ services:
       Ingestion__EnableGdelt: 'false'
       App__MaintenanceMode: 'false'
       App__MinimumAppVersion: '1.0.0'
+      # Leave empty for local Development (open). Set a secret for non-dev hosts.
+      Ops__AdminIngestionToken: ''
+      # Optional Prometheus scrape at /metrics (off by default).
+      Telemetry__EnablePrometheus: 'false'
     ports:
       - '5080:5080'
     depends_on:

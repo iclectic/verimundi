@@ -28,6 +28,7 @@ public static class DependencyInjection
         });
 
         services.AddSingleton<StoryClusteringService>();
+        services.AddSingleton<IngestionMetricsStore>();
         services.AddScoped<IAiSynthesisService, HeuristicAiSynthesisService>();
 
         var fixturePath = configuration["Ingestion:FixturePath"];

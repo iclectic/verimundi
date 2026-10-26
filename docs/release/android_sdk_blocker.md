@@ -45,6 +45,7 @@ Exit `0` when a usable Android toolchain is detected; exit `1` with pointers to 
 
 - Flutter analyze/test suite
 - Backend build/test
-- Release runbooks under `docs/release/`
+- Release runbooks under `docs/release/` (including `staging_flutter_api_smoke.md` via chrome/linux)
 - Data Safety / privacy drafts for legal review
 - `scripts/check_android_sdk.sh` for hosts that later gain an SDK
+- `scripts/staging_api_smoke.sh` for API-only curl checks

@@ -8,7 +8,7 @@ namespace VeriMundi.IntegrationTests;
 
 /// <summary>
 /// Host smoke tests that do not require PostgreSQL.
-/// Full Postgres-backed ingestion is exercised via local <c>dotnet run</c> + curl.
+/// Postgres-backed stories/search/Ask/report paths live in <see cref="PostgresDataPlaneTests"/>.
 /// </summary>
 public class ApiSmokeTests : IClassFixture<WebApplicationFactory<Program>>
 {

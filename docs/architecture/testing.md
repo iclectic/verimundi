@@ -5,7 +5,7 @@
 | Workflow | Trigger | Commands |
 | --- | --- | --- |
 | `.github/workflows/flutter.yml` | PR + push `main` / `feat/**` | `dart format`, `flutter analyze`, `flutter test` |
-| `.github/workflows/backend.yml` | PR + push when `backend/**` changes | `dotnet restore/build/test` (unit + integration) |
+| `.github/workflows/backend.yml` | PR + push when `backend/**` changes | `dotnet restore/build/test` (unit + integration) with Postgres 16 service for data-plane tests; separate OpenAPI contract job |
 
 ## Flutter (`test/features/`)
 
@@ -29,13 +29,13 @@ flutter test
 | Project | Focus |
 | --- | --- |
 | `VeriMundi.UnitTests` | Clustering, scoring, sources, AI validator/OpenAI stub, ingestion metrics store, report reasons |
-| `VeriMundi.IntegrationTests` | `/health`, `/v1/app/config`, ops auth, Prometheus scrape, API telemetry route groups + meters, report validation |
+| `VeriMundi.IntegrationTests` | `/health`, `/v1/app/config`, ops auth, Prometheus scrape, API telemetry, rate limits, OpenAPI contract, **Postgres data-plane** (stories paging, search, story-by-id, Ask heuristic, report allowlist/404) |
 
 ```bash
 cd backend && dotnet test
 ```
 
-Postgres-backed full ingestion is **not** required for CI smoke; use docker-compose locally for live RSS/GDELT cycles.
+Postgres data-plane tests seed + fixture-ingest inside the harness (`VERIMUNDI_TEST_POSTGRES` or Testcontainers). Hosted RSS/GDELT stay off under `Testing`. Live RSS/GDELT cycles still use docker-compose locally — see `backend/README.md`.
 
 ## Observability hooks under test
 

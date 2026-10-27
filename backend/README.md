@@ -40,6 +40,26 @@ dotnet test
 
 OpenAPI contract tests compare the live Swagger document to `contracts/openapi.v1.json` (stories / search / Ask / app config schemas). Unintended diffs fail CI; intentional breaks require regenerating the snapshot (`UPDATE_OPENAPI_SNAPSHOT=1` or `./scripts/export-openapi.sh`) and committing it.
 
+### Postgres data-plane integration tests
+
+`PostgresDataPlaneTests` migrate/seed, run fixture ingestion, then exercise `GET /v1/stories` paging, `GET /v1/search`, `GET /v1/stories/{id}`, heuristic Ask, and report allowlist / 404. The Testing environment keeps hosted RSS/GDELT loops off.
+
+**CI** provides a Postgres 16 service and sets `VERIMUNDI_TEST_POSTGRES`.
+
+**Local (docker Compose DB already up):**
+
+```bash
+# from repo root — start only the database if needed
+docker compose up -d db
+
+export VERIMUNDI_TEST_POSTGRES='Host=localhost;Port=5432;Database=verimundi;Username=verimundi;Password=verimundi'
+cd backend && dotnet test --filter FullyQualifiedName~PostgresDataPlaneTests
+```
+
+**Local (Docker daemon, no Compose):** omit `VERIMUNDI_TEST_POSTGRES` and `dotnet test` will start an ephemeral Postgres via Testcontainers.
+
+Do not rely on a developer’s long-lived `verimundi` database state — each run creates an isolated database (env path) or container (Testcontainers).
+
 ## Flutter remote mode
 
 ```bash

@@ -101,3 +101,17 @@ public sealed record QuestionResponse(
     IReadOnlyList<string> SourceIds,
     string? Uncertainty,
     DateTimeOffset GeneratedAt);
+
+public sealed record AppConfigIngestionDto(bool EnableRss, bool EnableGdelt);
+
+public sealed record AppConfigAiDto(string Provider);
+
+/// <summary>Wire shape for <c>GET /v1/app/config</c> (schema-locked for Flutter).</summary>
+public sealed record AppConfigDto(
+    string Environment,
+    bool MaintenanceMode,
+    string? MaintenanceMessage,
+    string MinimumAppVersion,
+    AppConfigIngestionDto Ingestion,
+    AppConfigAiDto Ai,
+    string Disclaimer);

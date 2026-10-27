@@ -1,0 +1,63 @@
+{
+  "items": [
+    {
+      "id": "11111111-1111-1111-1111-111111111111",
+      "headline": "Clinic coverage expands in rural wards",
+      "shortSummary": "Local clinics report expanded coverage.",
+      "fullSummary": "Local and regional outlets report expanded clinic coverage across rural wards.",
+      "whyItMatters": "Access changes affect underreported communities.",
+      "countryCodes": ["NG"],
+      "primaryCountryCode": "NG",
+      "region": "Africa",
+      "category": "health",
+      "latitude": 9.1,
+      "longitude": 7.5,
+      "firstPublishedAt": "2026-10-01T00:00:00Z",
+      "lastUpdatedAt": "2026-10-02T12:00:00Z",
+      "severity": "developing",
+      "severityReason": "Emerging local reporting",
+      "tone": "neutral",
+      "verificationStatus": "developing",
+      "confidenceScore": 0.62,
+      "localSourceCount": 2,
+      "regionalSourceCount": 1,
+      "internationalSourceCount": 0,
+      "independentSourceCount": 3,
+      "underreportedScore": 71.5,
+      "underreportedReason": "Local coverage exceeds international.",
+      "positiveImpactScore": 12,
+      "rankingReason": "Severity and recency.",
+      "sourceArticles": [
+        {
+          "id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+          "name": "Regional Desk",
+          "articleUrl": "https://example.org/a",
+          "publisherUrl": "https://example.org",
+          "countryCode": "NG",
+          "languageCode": "en",
+          "publicationType": "Newsroom",
+          "isLocalSource": true,
+          "publishedAt": "2026-10-01T00:00:00Z",
+          "author": null,
+          "credibilityStatus": "established",
+          "headline": "Clinic coverage expands",
+          "coverageLevel": "local"
+        }
+      ],
+      "confirmedFacts": [
+        {
+          "text": "Two clinics added weekend hours.",
+          "sourceIds": ["aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"]
+        }
+      ],
+      "disputedClaims": [],
+      "uncertainties": ["Long-term funding unclear"],
+      "isDemoContent": false,
+      "correctionNotice": null,
+      "correctedAt": null
+    }
+  ],
+  "page": 1,
+  "pageSize": 20,
+  "total": 1
+}

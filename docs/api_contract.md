@@ -62,4 +62,16 @@ Common codes the Flutter client maps into typed UI states:
 
 Transport failures (timeout / connection) never silently fall back to mock in production.
 
-OpenAPI/Swagger is enabled for the Development environment on the ASP.NET host.
+## OpenAPI contract lock (Phase 3)
+
+- Runtime Swagger UI remains **Development-only** (`http://localhost:5080/swagger`).
+- The machine-readable contract snapshot is committed at `backend/contracts/openapi.v1.json`.
+- CI job **openapi-contract** (and `OpenApiContractTests`) fail when the live Swagger document drifts from that snapshot.
+- Schema-locked product surfaces: `GET /v1/stories`, `GET /v1/search`, `POST /v1/stories/{storyId}/questions`, `GET /v1/app/config` (`PagedResponse_StoryDto`, `QuestionResponse`, `AppConfigDto`, …).
+- **Acknowledging an intentional breaking change:** regenerate and commit the snapshot:
+
+```bash
+cd backend && ./scripts/export-openapi.sh
+```
+
+Flutter remote parsers for stories page, Ask, and app config use schema-checked decoding helpers and `test/fixtures/v1/*.json` contract fixtures.

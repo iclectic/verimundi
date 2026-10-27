@@ -1,3 +1,5 @@
+import 'json_decoding.dart';
+
 class AppRemoteConfig {
   const AppRemoteConfig({
     required this.environment,
@@ -22,19 +24,32 @@ class AppRemoteConfig {
   final String aiProvider;
 
   factory AppRemoteConfig.fromJson(Map<String, dynamic> json) {
-    final ingestion = json['ingestion'] as Map<String, dynamic>? ?? const {};
-    final ai = json['ai'] as Map<String, dynamic>? ?? const {};
+    final ingestion =
+        JsonDecoding.asObjectOrNull(json['ingestion']) ??
+        const <String, dynamic>{};
+    final ai =
+        JsonDecoding.asObjectOrNull(json['ai']) ?? const <String, dynamic>{};
     return AppRemoteConfig(
-      environment: json['environment'] as String? ?? 'unknown',
-      maintenanceMode: json['maintenanceMode'] as bool? ?? false,
-      maintenanceMessage: json['maintenanceMessage'] as String?,
-      minimumAppVersion: json['minimumAppVersion'] as String? ?? '1.0.0',
-      disclaimer:
-          json['disclaimer'] as String? ??
-          'VeriMundi summaries remain imperfect and should be read with original reporting.',
-      enableRss: ingestion['enableRss'] as bool? ?? false,
-      enableGdelt: ingestion['enableGdelt'] as bool? ?? false,
-      aiProvider: ai['provider'] as String? ?? 'heuristic',
+      environment: JsonDecoding.asString(
+        json['environment'],
+        fallback: 'unknown',
+      ),
+      maintenanceMode: JsonDecoding.asBool(json['maintenanceMode']),
+      maintenanceMessage: JsonDecoding.asStringOrNull(
+        json['maintenanceMessage'],
+      ),
+      minimumAppVersion: JsonDecoding.asString(
+        json['minimumAppVersion'],
+        fallback: '1.0.0',
+      ),
+      disclaimer: JsonDecoding.asString(
+        json['disclaimer'],
+        fallback:
+            'VeriMundi summaries remain imperfect and should be read with original reporting.',
+      ),
+      enableRss: JsonDecoding.asBool(ingestion['enableRss']),
+      enableGdelt: JsonDecoding.asBool(ingestion['enableGdelt']),
+      aiProvider: JsonDecoding.asString(ai['provider'], fallback: 'heuristic'),
     );
   }
 

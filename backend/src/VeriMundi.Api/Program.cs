@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using VeriMundi.Api.Contracts;
 using VeriMundi.Api.Endpoints;
 using VeriMundi.Api.Middleware;
+using VeriMundi.Api.OpenApi;
 using VeriMundi.Api.Options;
 using VeriMundi.Api.RateLimiting;
 using VeriMundi.Api.Telemetry;
@@ -29,8 +30,7 @@ if (!isTesting)
 {
     builder.Services.AddHostedService<IngestionHostedService>();
 }
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddVeriMundiOpenApi();
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;

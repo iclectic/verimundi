@@ -26,7 +26,8 @@ VeriMundi uses a **modular monolith** built with:
 - **No microservices** for ingestion, scoring, or AI — boundaries are modules inside one solution.
 - **No GenAI or news credentials in the Flutter app.**
 - **No indiscriminate scraping** of article HTML bodies.
-- Client code generation from OpenAPI is optional; Flutter keeps a hand-maintained Dio repository for maintainability.
+- Client code generation from OpenAPI remains optional; Flutter keeps a hand-maintained Dio repository with schema-checked decoding for stories page, Ask, and app config.
+- CI locks the Swagger document against `backend/contracts/openapi.v1.json` (regenerate via `backend/scripts/export-openapi.sh` after intentional breaks).
 
 ## Repository layout
 

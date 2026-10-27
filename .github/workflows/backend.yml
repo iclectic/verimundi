@@ -27,3 +27,24 @@ jobs:
         run: dotnet build --no-restore -c Release
       - name: Test
         run: dotnet test --no-build -c Release --verbosity normal
+
+  # Fails when OpenAPI drifts from backend/contracts/openapi.v1.json unless the
+  # snapshot is intentionally regenerated (acknowledgement of a breaking change).
+  openapi-contract:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Restore
+        run: dotnet restore
+      - name: Verify OpenAPI contract snapshot
+        run: >
+          dotnet test tests/VeriMundi.IntegrationTests
+          --filter FullyQualifiedName~OpenApiContractTests
+          -c Release
+          --verbosity normal

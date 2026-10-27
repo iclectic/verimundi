@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using VeriMundi.Api.Contracts;
 using VeriMundi.Api.Mapping;
+using VeriMundi.Api.OpenApi;
 using VeriMundi.Domain;
 using VeriMundi.Domain.Entities;
 using VeriMundi.Infrastructure.Persistence;
@@ -88,7 +89,10 @@ public static class SearchEndpoints
             var total = list.Count;
             var items = list.Skip((page - 1) * pageSize).Take(pageSize).Select(s => StoryMapper.ToDto(s)).ToList();
             return Results.Ok(new PagedResponse<StoryDto>(items, page, pageSize, total));
-        });
+        })
+        .WithName("SearchStories")
+        .WithTags("Search")
+        .WithStoryPageContract();
 
         return api;
     }

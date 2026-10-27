@@ -23,7 +23,9 @@ public sealed class AiOptions
     /// <summary>HTTP timeout for provider calls.</summary>
     public int TimeoutSeconds { get; set; } = 45;
 
-    /// <summary>Per-IP Ask VeriMundi POSTs allowed per minute (stricter than global write limit).</summary>
+    /// <summary>
+    /// Legacy Ask limit. Prefer <c>RateLimiting:AskPerMinute</c>; bridged when that key is unset.
+    /// </summary>
     public int AskPerMinutePerIp { get; set; } = 10;
 
     public bool IsConfigured => !string.IsNullOrWhiteSpace(ApiKey);

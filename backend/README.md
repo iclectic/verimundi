@@ -62,7 +62,12 @@ Staging / remote honesty checklist (no secrets in git):
 | `Ai:ApiKey` / `OPENAI_API_KEY` | Optional OpenAI-compatible key (env only). Empty → heuristic synthesis/Ask |
 | `Ai:BaseUrl` | OpenAI-compatible base (default `https://api.openai.com/v1`) |
 | `Ai:Model` | Chat model id (default `gpt-4o-mini`) |
-| `Ai:AskPerMinutePerIp` | Stricter Ask VeriMundi rate limit (default `10`) |
+| `Ai:AskPerMinutePerIp` | Legacy alias for Ask limit when `RateLimiting:AskPerMinute` is unset (default `10`) |
+| `RateLimiting:Provider` | `Memory` (Dev/Testing default) or `Redis` (Staging/Production default). Empty → chosen from environment |
+| `RateLimiting:WritePerMinute` | Global write (POST/PUT/DELETE) limit per IP (default `30`) |
+| `RateLimiting:AskPerMinute` | Ask VeriMundi limit per IP (default `10`) |
+| `RateLimiting:ReportPerMinute` | Problem-report limit per IP (default `10`) |
+| `RateLimiting:RedisConnection` / `ConnectionStrings:Redis` | Required when Provider is Redis (multi-replica shared quotas) |
 | `App:MaintenanceMode` | When `true`, product routes return `503`; health/ready/config/**admin** remain up |
 | `App:MinimumAppVersion` | SemVer floor advertised to Flutter via `/v1/app/config` |
 | `App:MaintenanceMessage` | Message returned during maintenance |
@@ -116,6 +121,7 @@ export Ai__ApiKey='…local secret…'   # or OPENAI_API_KEY
 ```
 
 `GET /v1/app/config` reports `ai.provider` as `heuristic` or `openaiCompatible` (never the key).  
-Ask VeriMundi has an extra per-IP limit (`Ai:AskPerMinutePerIp`, code `ask_rate_limited`).  
+Ask VeriMundi has an extra per-IP limit (`RateLimiting:AskPerMinute`, code `ask_rate_limited`).  
 Problem reports use an allowlisted reason set and an extra per-IP limit (`report_rate_limited`).  
+In-app limits use pluggable `IRateLimiter` (memory or Redis); edge/WAF remains recommended.  
 See `docs/ai_safety.md` and `docs/editorial/abuse_prevention.md`.

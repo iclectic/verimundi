@@ -18,6 +18,16 @@ services:
       timeout: 5s
       retries: 10
 
+  # Optional shared rate-limit store for multi-replica experiments.
+  # Development defaults to in-memory RateLimiting:Provider=Memory.
+  # Staging/Production: set RateLimiting__Provider=Redis and ConnectionStrings__Redis.
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6379:6379'
+    profiles:
+      - redis
+
   api:
     image: mcr.microsoft.com/dotnet/sdk:8.0
     working_dir: /src
@@ -34,6 +44,7 @@ services:
       Ingestion__GdeltQuery: sourcelang:english
       App__MaintenanceMode: 'false'
       App__MinimumAppVersion: '1.0.0'
+      RateLimiting__Provider: Memory
       # Leave empty for local Development (open). Set a secret for non-dev hosts.
       Ops__AdminIngestionToken: ''
       # Optional Prometheus scrape at /metrics (off by default).

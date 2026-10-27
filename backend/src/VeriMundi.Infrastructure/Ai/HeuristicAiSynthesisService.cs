@@ -14,17 +14,7 @@ public sealed class HeuristicAiSynthesisService : IAiSynthesisService
     {
         if (request.Sources.Count == 0)
         {
-            return Task.FromResult(new AiSynthesisResult(
-                Summary: "VeriMundi does not currently have enough reliable source material to summarise this story.",
-                WhyItMatters: string.Empty,
-                ConfirmedFacts: [],
-                DisputedClaims: [],
-                Uncertainties: ["No source articles were available for synthesis."],
-                Severity: "general",
-                SeverityReason: "Insufficient evidence to assess severity.",
-                Tone: "neutral",
-                ConfidenceScore: 0,
-                InsufficientEvidence: true));
+            return Task.FromResult(GroundedAiValidator.InsufficientSynthesis());
         }
 
         var sourceIds = request.Sources.Select(s => s.SourceId).Distinct().ToList();
@@ -52,7 +42,7 @@ public sealed class HeuristicAiSynthesisService : IAiSynthesisService
 
         var confidence = Math.Clamp(0.35 + (request.Sources.Count * 0.08), 0.35, 0.82);
 
-        return Task.FromResult(new AiSynthesisResult(
+        var raw = new AiSynthesisResult(
             Summary: summary,
             WhyItMatters:
                 "This development may matter for regional awareness because it appears in local or specialist coverage that international feeds can under-index.",
@@ -63,7 +53,8 @@ public sealed class HeuristicAiSynthesisService : IAiSynthesisService
             SeverityReason: "Heuristic severity pending richer evidence signals; treated as developing.",
             Tone: InferTone(summary),
             ConfidenceScore: Math.Round(confidence, 2),
-            InsufficientEvidence: false));
+            InsufficientEvidence: false);
+        return Task.FromResult(GroundedAiValidator.SanitiseSynthesis(raw, request.Sources));
     }
 
     public Task<AiQuestionResult> AnswerQuestionAsync(
@@ -73,16 +64,13 @@ public sealed class HeuristicAiSynthesisService : IAiSynthesisService
         var q = request.Question.Trim();
         if (q.Length == 0 || q.Length > 500)
         {
-            return Task.FromResult(Insufficient("Question must be between 1 and 500 characters."));
+            return Task.FromResult(
+                GroundedAiValidator.InsufficientAnswer("Question must be between 1 and 500 characters."));
         }
 
-        if (request.Sources.Count == 0 ||
-            q.Contains("prove", StringComparison.OrdinalIgnoreCase) ||
-            ContainsWholeWord(q, "certain") ||
-            ContainsWholeWord(q, "certainty"))
+        if (request.Sources.Count == 0 || GroundedAiValidator.IsCertaintyPrompt(q))
         {
-            return Task.FromResult(Insufficient(
-                "VeriMundi does not currently have enough reliable source material to answer that with confidence."));
+            return Task.FromResult(GroundedAiValidator.InsufficientAnswer());
         }
 
         var ids = request.Sources.Take(2).Select(s => s.SourceId).ToList();
@@ -106,23 +94,15 @@ public sealed class HeuristicAiSynthesisService : IAiSynthesisService
                 "Consult the original publishers for full reporting.";
         }
 
-        return Task.FromResult(new AiQuestionResult(
+        var raw = new AiQuestionResult(
             Answer: answer,
             SourceIds: ids,
             Confidence: 0.62,
             Uncertainty: "Answers are retrieval-grounded heuristics unless a GenAI provider is configured.",
             GeneratedAt: DateTimeOffset.UtcNow,
-            InsufficientEvidence: false));
+            InsufficientEvidence: false);
+        return Task.FromResult(GroundedAiValidator.SanitiseAnswer(raw, request.Sources));
     }
-
-    private static AiQuestionResult Insufficient(string message) =>
-        new(
-            Answer: message,
-            SourceIds: [],
-            Confidence: 0.1,
-            Uncertainty: message,
-            GeneratedAt: DateTimeOffset.UtcNow,
-            InsufficientEvidence: true);
 
     private static string InferTone(string text)
     {
@@ -138,11 +118,5 @@ public sealed class HeuristicAiSynthesisService : IAiSynthesisService
         }
 
         return "neutral";
-    }
-
-    private static bool ContainsWholeWord(string text, string word)
-    {
-        var parts = text.Split([' ', '\t', '\r', '\n', ',', '.', '?', '!', ';', ':'], StringSplitOptions.RemoveEmptyEntries);
-        return parts.Any(p => p.Equals(word, StringComparison.OrdinalIgnoreCase));
     }
 }

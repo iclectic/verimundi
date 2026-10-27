@@ -1,15 +1,16 @@
-# VeriMundi telemetry (ingestion)
+# VeriMundi telemetry
 
 ## Default
 
-Telemetry export is **off**. Ingestion still:
+Telemetry export is **off**. The API still:
 
-- Writes structured log lines per cycle
+- Writes structured HTTP log lines (`Method`, `Path`, `StatusCode`, `ElapsedMs`, `TraceId`, `RouteGroup`)
 - Updates process-local `IngestionMetricsStore` (`GET /v1/admin/ingestion/metrics`, ops-gated)
+- Increments in-process meters (visible on scrape only when Prometheus is enabled)
 
-## OpenTelemetry meters
+## Meters
 
-Meter name: `VeriMundi.Ingestion`
+### Ingestion — `VeriMundi.Ingestion`
 
 | Instrument | Type | Meaning |
 | --- | --- | --- |
@@ -29,6 +30,19 @@ Meter name: `VeriMundi.Ingestion`
 
 Tag: `trigger` = `startup` \| `hosted` \| `admin` \| …
 
+### API — `VeriMundi.Api`
+
+| Instrument | Type | Meaning |
+| --- | --- | --- |
+| `verimundi_api_http_requests` | counter | All HTTP requests |
+| `verimundi_api_http_duration_ms` | histogram | Request duration |
+| `verimundi_api_ask_requests` | counter | Ask answers (incl. insufficient evidence) |
+| `verimundi_api_reports_accepted` | counter | Accepted problem reports |
+| `verimundi_api_rate_limited` | counter | 429 from write/ask/report limiters |
+
+HTTP tags: `method`, `status_class` (`2xx`…), `route_group` (`ask` \| `reports` \| `search` \| `stories` \| `admin` \| `api` \| `ops` \| …).  
+Ask tag: `insufficient_evidence`. Report tag: `reason` (allowlisted). Rate-limit tag: `kind` = `write` \| `ask` \| `report`.
+
 ## Prometheus scrape
 
 ```bash
@@ -44,3 +58,8 @@ An OTLP NuGet exporter is **not** referenced in this repo currently (moderate ad
 
 1. Prometheus scrape → Grafana Agent / OTEL Collector prometheus receiver, or
 2. Adding a patched OTLP package later behind `Telemetry:EnableOtlp` once the advisory is cleared.
+
+## Related
+
+- Testing matrix: `docs/architecture/testing.md`
+- Abuse / rate limits: `docs/editorial/abuse_prevention.md`

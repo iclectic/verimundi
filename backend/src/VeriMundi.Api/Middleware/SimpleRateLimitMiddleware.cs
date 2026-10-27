@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using VeriMundi.Api.Contracts;
+using VeriMundi.Api.Telemetry;
 
 namespace VeriMundi.Api.Middleware;
 
@@ -37,6 +38,7 @@ public sealed class SimpleRateLimitMiddleware(RequestDelegate next)
 
             if (limited)
             {
+                ApiTelemetry.RecordRateLimited("write");
                 context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
                 context.Response.Headers.RetryAfter = "60";
                 await context.Response.WriteAsJsonAsync(new ApiError(

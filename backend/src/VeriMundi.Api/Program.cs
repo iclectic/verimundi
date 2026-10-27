@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using VeriMundi.Api.Contracts;
 using VeriMundi.Api.Mapping;
 using VeriMundi.Application.Abstractions;
+using VeriMundi.Application.Safety;
 using VeriMundi.Application.Scoring;
 using VeriMundi.Domain;
 using VeriMundi.Domain.Entities;
@@ -51,17 +52,28 @@ app.MapVeriMundiTelemetry();
 
 app.UseCors();
 app.UseMiddleware<SimpleRateLimitMiddleware>();
+app.UseMiddleware<AskRateLimitMiddleware>();
+app.UseMiddleware<ReportRateLimitMiddleware>();
 app.Use(async (context, next) =>
 {
     var started = DateTimeOffset.UtcNow;
     await next();
-    var elapsed = DateTimeOffset.UtcNow - started;
-    app.Logger.LogInformation(
-        "HTTP {Method} {Path} => {StatusCode} in {ElapsedMs}ms",
+    var elapsedMs = (DateTimeOffset.UtcNow - started).TotalMilliseconds;
+    var path = context.Request.Path.Value;
+    var routeGroup = ApiTelemetry.RouteGroup(path);
+    ApiTelemetry.RecordHttp(
         context.Request.Method,
-        context.Request.Path.Value,
         context.Response.StatusCode,
-        elapsed.TotalMilliseconds);
+        routeGroup,
+        elapsedMs);
+    app.Logger.LogInformation(
+        "HTTP {Method} {Path} => {StatusCode} in {ElapsedMs}ms TraceId={TraceId} RouteGroup={RouteGroup}",
+        context.Request.Method,
+        path,
+        context.Response.StatusCode,
+        elapsedMs,
+        context.TraceIdentifier,
+        routeGroup);
 });
 
 // Maintenance mode blocks product routes; health/ready/config/admin stay available
@@ -177,6 +189,7 @@ api.MapGet("/stories", async (
     string? severity,
     string? tone,
     string? verification,
+    bool? hasLocalCoverage,
     int page = 1,
     int pageSize = 20) =>
 {
@@ -207,7 +220,9 @@ api.MapGet("/stories", async (
 
     if (!string.IsNullOrWhiteSpace(countryCode))
     {
-        filtered = filtered.Where(s => s.PrimaryCountryCode.Equals(countryCode, StringComparison.OrdinalIgnoreCase));
+        filtered = filtered.Where(s =>
+            s.PrimaryCountryCode.Equals(countryCode, StringComparison.OrdinalIgnoreCase) ||
+            s.AffectedCountryCodes.Any(c => c.Equals(countryCode, StringComparison.OrdinalIgnoreCase)));
     }
 
     if (!string.IsNullOrWhiteSpace(category) && Enum.TryParse<StoryCategory>(category, true, out var cat))
@@ -228,6 +243,11 @@ api.MapGet("/stories", async (
     if (!string.IsNullOrWhiteSpace(verification) && Enum.TryParse<VerificationStatus>(verification, true, out var ver))
     {
         filtered = filtered.Where(s => s.VerificationStatus == ver);
+    }
+
+    if (hasLocalCoverage == true)
+    {
+        filtered = filtered.Where(s => s.LocalSourceCount > 0);
     }
 
     var ranked = WorldPulseRanker.RankWithRegionalBalance(filtered, take: 500);
@@ -365,10 +385,12 @@ api.MapGet("/search", async (
     string? category,
     string? severity,
     string? tone,
+    string? verification,
+    bool? hasLocalCoverage,
     int page = 1,
     int pageSize = 20) =>
 {
-    // Delegate to /stories filter semantics.
+    // Discovery search: broader text match than /stories?query= (sources + whyItMatters).
     page = Math.Max(1, page);
     pageSize = Math.Clamp(pageSize, 1, 100);
     var stories = await db.Stories.AsNoTracking()
@@ -385,6 +407,8 @@ api.MapGet("/search", async (
             s.CanonicalHeadline.Contains(queryText, StringComparison.OrdinalIgnoreCase) ||
             s.ShortSummary.Contains(queryText, StringComparison.OrdinalIgnoreCase) ||
             s.WhyItMatters.Contains(queryText, StringComparison.OrdinalIgnoreCase) ||
+            s.Region.Contains(queryText, StringComparison.OrdinalIgnoreCase) ||
+            s.PrimaryCountryCode.Contains(queryText, StringComparison.OrdinalIgnoreCase) ||
             s.ArticleLinks.Any(l =>
                 l.Article!.Headline.Contains(queryText, StringComparison.OrdinalIgnoreCase) ||
                 (l.Article.Source != null && l.Article.Source.Name.Contains(queryText, StringComparison.OrdinalIgnoreCase))));
@@ -397,7 +421,34 @@ api.MapGet("/search", async (
 
     if (!string.IsNullOrWhiteSpace(countryCode))
     {
-        filtered = filtered.Where(s => s.PrimaryCountryCode.Equals(countryCode, StringComparison.OrdinalIgnoreCase));
+        filtered = filtered.Where(s =>
+            s.PrimaryCountryCode.Equals(countryCode, StringComparison.OrdinalIgnoreCase) ||
+            s.AffectedCountryCodes.Any(c => c.Equals(countryCode, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    if (!string.IsNullOrWhiteSpace(category) && Enum.TryParse<StoryCategory>(category, true, out var cat))
+    {
+        filtered = filtered.Where(s => s.Category == cat);
+    }
+
+    if (!string.IsNullOrWhiteSpace(severity) && Enum.TryParse<Severity>(severity, true, out var sev))
+    {
+        filtered = filtered.Where(s => s.Severity == sev);
+    }
+
+    if (!string.IsNullOrWhiteSpace(tone) && Enum.TryParse<Tone>(tone, true, out var tn))
+    {
+        filtered = filtered.Where(s => s.Tone == tn);
+    }
+
+    if (!string.IsNullOrWhiteSpace(verification) && Enum.TryParse<VerificationStatus>(verification, true, out var ver))
+    {
+        filtered = filtered.Where(s => s.VerificationStatus == ver);
+    }
+
+    if (hasLocalCoverage == true)
+    {
+        filtered = filtered.Where(s => s.LocalSourceCount > 0);
     }
 
     var list = filtered.OrderByDescending(s => s.LastUpdatedAt).ToList();
@@ -453,6 +504,8 @@ api.MapPost("/stories/{storyId}/questions", async (
         facts,
         story.Uncertainties));
 
+    ApiTelemetry.RecordAsk(result.InsufficientEvidence);
+
     return Results.Ok(new QuestionResponse(
         result.Answer,
         result.InsufficientEvidence,
@@ -473,14 +526,19 @@ api.MapPost("/stories/{storyId}/reports", async (
         return Results.BadRequest(new ApiError("invalid_id", "storyId must be a GUID."));
     }
 
-    if (string.IsNullOrWhiteSpace(body.Reason) || body.Reason.Length > 120)
+    if (!StoryReportReasons.TryNormalize(body.Reason, out var reason))
     {
-        return Results.BadRequest(new ApiError("invalid_reason", "Reason must be 1–120 characters."));
+        return Results.BadRequest(new ApiError(
+            "invalid_reason",
+            "Reason must be one of the supported report categories."));
     }
 
-    if (body.Details is { Length: > 500 })
+    var details = string.IsNullOrWhiteSpace(body.Details) ? null : body.Details.Trim();
+    if (!StoryReportReasons.IsDetailsValid(details))
     {
-        return Results.BadRequest(new ApiError("invalid_details", "Details must be at most 500 characters."));
+        return Results.BadRequest(new ApiError(
+            "invalid_details",
+            $"Details must be at most {StoryReportReasons.MaxDetailsLength} characters."));
     }
 
     var exists = await db.Stories.AsNoTracking().AnyAsync(s => s.Id == id);
@@ -489,13 +547,16 @@ api.MapPost("/stories/{storyId}/reports", async (
         return Results.NotFound(new ApiError("story_not_found", "Story was not found."));
     }
 
+    // Accepted for editorial follow-up. Details text is not written to application logs —
+    // only length — to reduce accidental PII retention in log sinks.
     var reportId = Guid.NewGuid();
     loggerFactory.CreateLogger("VeriMundi.Reports").LogWarning(
         "Story report received. ReportId={ReportId} StoryId={StoryId} Reason={Reason} DetailsLength={DetailsLength}",
         reportId,
         id,
-        body.Reason,
-        body.Details?.Length ?? 0);
+        reason,
+        details?.Length ?? 0);
+    ApiTelemetry.RecordReportAccepted(reason);
 
     return Results.Accepted(
         $"/v1/stories/{storyId}/reports/{reportId}",
@@ -575,6 +636,7 @@ app.MapGet("/ready", async (VeriMundiDbContext db) =>
 
 api.MapGet("/app/config", (
     Microsoft.Extensions.Options.IOptions<AppOptions> options,
+    Microsoft.Extensions.Options.IOptions<VeriMundi.Infrastructure.Ai.AiOptions> aiOptions,
     IHostEnvironment env,
     IConfiguration configuration) =>
 {
@@ -589,6 +651,11 @@ api.MapGet("/app/config", (
         {
             enableRss = string.Equals(configuration["Ingestion:EnableRss"], "true", StringComparison.OrdinalIgnoreCase),
             enableGdelt = string.Equals(configuration["Ingestion:EnableGdelt"], "true", StringComparison.OrdinalIgnoreCase)
+        },
+        ai = new
+        {
+            // Never expose keys — only which backend path is active.
+            provider = aiOptions.Value.EffectiveProvider
         },
         disclaimer =
             "VeriMundi is designed to broaden regional and source visibility. Story selection, classification and AI-generated summaries remain imperfect and should be considered alongside the original reporting."

@@ -20,6 +20,7 @@ public static class VeriMundiTelemetryExtensions
             {
                 metrics
                     .AddMeter(IngestionTelemetry.MeterName)
+                    .AddMeter(ApiTelemetry.MeterName)
                     .AddPrometheusExporter();
             });
 
@@ -39,9 +40,10 @@ public static class VeriMundiTelemetryExtensions
             : options.PrometheusPath;
         app.MapPrometheusScrapingEndpoint(path);
         app.Logger.LogInformation(
-            "Prometheus metrics scrape enabled at {Path} (meter {Meter})",
+            "Prometheus metrics scrape enabled at {Path} (meters {IngestionMeter}, {ApiMeter})",
             path,
-            IngestionTelemetry.MeterName);
+            IngestionTelemetry.MeterName,
+            ApiTelemetry.MeterName);
         return app;
     }
 

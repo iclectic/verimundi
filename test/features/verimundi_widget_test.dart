@@ -93,7 +93,11 @@ void main() {
     );
     expect(find.text('Privacy'), findsOneWidget);
     expect(
-      find.textContaining('stored locally on this device'),
+      find.textContaining('stay on this device'),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('legal review'),
       findsOneWidget,
     );
   });
@@ -113,7 +117,7 @@ void main() {
     expect(find.textContaining('Save a story from any feed'), findsOneWidget);
   });
 
-  testWidgets('WorldMapView opens a country bottom sheet from a marker', (
+  testWidgets('WorldMapView opens a country sheet from the accessible list', (
     tester,
   ) async {
     final country = CountryNewsStatus(
@@ -138,17 +142,21 @@ void main() {
       ProviderScope(
         child: MaterialApp(
           home: Scaffold(
-            body: WorldMapView(countries: [country], stories: [story]),
+            body: SingleChildScrollView(
+              child: WorldMapView(countries: [country], stories: [story]),
+            ),
           ),
         ),
       ),
     );
     await pumpFrames(tester);
-    await tester.tap(find.byTooltip('Ghana: developing, 2 stories'));
-    await pumpFrames(tester);
+    await tester.tap(find.text('Country list'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Ghana'));
+    await tester.pumpAndSettle();
 
-    expect(find.text('Ghana'), findsWidgets);
     expect(find.textContaining('Leading developments'), findsOneWidget);
     expect(find.text('Schools pilot solar study halls'), findsWidgets);
+    expect(find.textContaining('Developing'), findsWidgets);
   });
 }

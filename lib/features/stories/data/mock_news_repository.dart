@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 
 import '../../../shared/models/news_models.dart';
 import '../domain/news_repository.dart';
+import '../domain/story_page_result.dart';
 import 'story_filtering.dart';
 import 'underreported_scoring_service.dart';
 
@@ -23,9 +24,21 @@ class MockNewsRepository implements NewsRepository {
   List<CountryNewsStatus>? _countries;
 
   @override
-  Future<List<StoryCluster>> getStories(StoryFilter filter) async {
+  Future<StoryPageResult> getStories(StoryFilter filter) async {
     final stories = await _loadStories();
-    return _filtering.apply(stories, filter);
+    final filtered = _filtering.apply(stories, filter);
+    final page = filter.page < 1 ? 1 : filter.page;
+    final pageSize = filter.pageSize.clamp(1, 100);
+    final start = (page - 1) * pageSize;
+    final slice = start >= filtered.length
+        ? const <StoryCluster>[]
+        : filtered.skip(start).take(pageSize).toList();
+    return StoryPageResult(
+      stories: slice,
+      page: page,
+      pageSize: pageSize,
+      total: filtered.length,
+    );
   }
 
   @override
@@ -153,7 +166,7 @@ class MockNewsRepository implements NewsRepository {
         draft.copyWith(
           underreportedReason: _scoring.explanation(draft),
           rankingReason:
-              'Mock World Pulse ordering uses severity, recency, and source counts from the fictional catalog.',
+              'Mock World Pulse ordering uses severity, recency, and source counts from the fictional catalogue.',
         ),
       );
     }

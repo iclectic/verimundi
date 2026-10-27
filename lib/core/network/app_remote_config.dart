@@ -7,6 +7,7 @@ class AppRemoteConfig {
     this.maintenanceMessage,
     this.enableRss = false,
     this.enableGdelt = false,
+    this.aiProvider = 'heuristic',
   });
 
   final String environment;
@@ -17,8 +18,12 @@ class AppRemoteConfig {
   final bool enableRss;
   final bool enableGdelt;
 
+  /// Backend synthesis path only (`heuristic` | `openaiCompatible`). Never a secret.
+  final String aiProvider;
+
   factory AppRemoteConfig.fromJson(Map<String, dynamic> json) {
     final ingestion = json['ingestion'] as Map<String, dynamic>? ?? const {};
+    final ai = json['ai'] as Map<String, dynamic>? ?? const {};
     return AppRemoteConfig(
       environment: json['environment'] as String? ?? 'unknown',
       maintenanceMode: json['maintenanceMode'] as bool? ?? false,
@@ -29,6 +34,7 @@ class AppRemoteConfig {
           'VeriMundi summaries remain imperfect and should be read with original reporting.',
       enableRss: ingestion['enableRss'] as bool? ?? false,
       enableGdelt: ingestion['enableGdelt'] as bool? ?? false,
+      aiProvider: ai['provider'] as String? ?? 'heuristic',
     );
   }
 

@@ -51,6 +51,47 @@ void main() {
       expect(mapped.recoveryHint, contains('60'));
     });
 
+    test('maps ask_rate_limited code', () {
+      final error = DioException(
+        requestOptions: RequestOptions(path: '/v1/stories/x/questions'),
+        response: Response(
+          requestOptions: RequestOptions(path: '/v1/stories/x/questions'),
+          statusCode: 429,
+          data: {
+            'code': 'ask_rate_limited',
+            'message': 'Too many Ask VeriMundi requests.',
+          },
+        ),
+        type: DioExceptionType.badResponse,
+      );
+
+      final mapped = RemoteApiException.fromDio(error);
+      expect(mapped.kind, RemoteApiErrorKind.rateLimited);
+      expect(mapped.code, 'ask_rate_limited');
+    });
+
+    test('maps report_rate_limited 429', () {
+      final error = DioException(
+        requestOptions: RequestOptions(path: '/v1/stories/x/reports'),
+        response: Response(
+          requestOptions: RequestOptions(path: '/v1/stories/x/reports'),
+          statusCode: 429,
+          data: {
+            'code': 'report_rate_limited',
+            'message': 'Too many problem reports.',
+          },
+          headers: Headers.fromMap({
+            'retry-after': ['60'],
+          }),
+        ),
+        type: DioExceptionType.badResponse,
+      );
+
+      final mapped = RemoteApiException.fromDio(error);
+      expect(mapped.kind, RemoteApiErrorKind.rateLimited);
+      expect(mapped.code, 'report_rate_limited');
+    });
+
     test('maps connection timeout', () {
       final error = DioException(
         requestOptions: RequestOptions(path: '/v1/stories'),

@@ -1826,7 +1826,7 @@ as DateTime?,
 /// @nodoc
 mixin _$StoryFilter {
 
- String? get query; String? get region; String? get countryCode; StoryCategory? get category; Severity? get severity; Tone? get tone; VerificationStatus? get verificationStatus; bool? get hasLocalCoverage; DateTime? get from; DateTime? get to;
+ String? get query; String? get region; String? get countryCode; StoryCategory? get category; Severity? get severity; Tone? get tone; VerificationStatus? get verificationStatus; bool? get hasLocalCoverage; DateTime? get from; DateTime? get to; int get page; int get pageSize;
 /// Create a copy of StoryFilter
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1837,16 +1837,16 @@ $StoryFilterCopyWith<StoryFilter> get copyWith => _$StoryFilterCopyWithImpl<Stor
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is StoryFilter&&(identical(other.query, query) || other.query == query)&&(identical(other.region, region) || other.region == region)&&(identical(other.countryCode, countryCode) || other.countryCode == countryCode)&&(identical(other.category, category) || other.category == category)&&(identical(other.severity, severity) || other.severity == severity)&&(identical(other.tone, tone) || other.tone == tone)&&(identical(other.verificationStatus, verificationStatus) || other.verificationStatus == verificationStatus)&&(identical(other.hasLocalCoverage, hasLocalCoverage) || other.hasLocalCoverage == hasLocalCoverage)&&(identical(other.from, from) || other.from == from)&&(identical(other.to, to) || other.to == to));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is StoryFilter&&(identical(other.query, query) || other.query == query)&&(identical(other.region, region) || other.region == region)&&(identical(other.countryCode, countryCode) || other.countryCode == countryCode)&&(identical(other.category, category) || other.category == category)&&(identical(other.severity, severity) || other.severity == severity)&&(identical(other.tone, tone) || other.tone == tone)&&(identical(other.verificationStatus, verificationStatus) || other.verificationStatus == verificationStatus)&&(identical(other.hasLocalCoverage, hasLocalCoverage) || other.hasLocalCoverage == hasLocalCoverage)&&(identical(other.from, from) || other.from == from)&&(identical(other.to, to) || other.to == to)&&(identical(other.page, page) || other.page == page)&&(identical(other.pageSize, pageSize) || other.pageSize == pageSize));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,query,region,countryCode,category,severity,tone,verificationStatus,hasLocalCoverage,from,to);
+int get hashCode => Object.hash(runtimeType,query,region,countryCode,category,severity,tone,verificationStatus,hasLocalCoverage,from,to,page,pageSize);
 
 @override
 String toString() {
-  return 'StoryFilter(query: $query, region: $region, countryCode: $countryCode, category: $category, severity: $severity, tone: $tone, verificationStatus: $verificationStatus, hasLocalCoverage: $hasLocalCoverage, from: $from, to: $to)';
+  return 'StoryFilter(query: $query, region: $region, countryCode: $countryCode, category: $category, severity: $severity, tone: $tone, verificationStatus: $verificationStatus, hasLocalCoverage: $hasLocalCoverage, from: $from, to: $to, page: $page, pageSize: $pageSize)';
 }
 
 
@@ -1857,7 +1857,7 @@ abstract mixin class $StoryFilterCopyWith<$Res>  {
   factory $StoryFilterCopyWith(StoryFilter value, $Res Function(StoryFilter) _then) = _$StoryFilterCopyWithImpl;
 @useResult
 $Res call({
- String? query, String? region, String? countryCode, StoryCategory? category, Severity? severity, Tone? tone, VerificationStatus? verificationStatus, bool? hasLocalCoverage, DateTime? from, DateTime? to
+ String? query, String? region, String? countryCode, StoryCategory? category, Severity? severity, Tone? tone, VerificationStatus? verificationStatus, bool? hasLocalCoverage, DateTime? from, DateTime? to, int page, int pageSize
 });
 
 
@@ -1874,7 +1874,7 @@ class _$StoryFilterCopyWithImpl<$Res>
 
 /// Create a copy of StoryFilter
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? query = freezed,Object? region = freezed,Object? countryCode = freezed,Object? category = freezed,Object? severity = freezed,Object? tone = freezed,Object? verificationStatus = freezed,Object? hasLocalCoverage = freezed,Object? from = freezed,Object? to = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? query = freezed,Object? region = freezed,Object? countryCode = freezed,Object? category = freezed,Object? severity = freezed,Object? tone = freezed,Object? verificationStatus = freezed,Object? hasLocalCoverage = freezed,Object? from = freezed,Object? to = freezed,Object? page = null,Object? pageSize = null,}) {
   return _then(_self.copyWith(
 query: freezed == query ? _self.query : query // ignore: cast_nullable_to_non_nullable
 as String?,region: freezed == region ? _self.region : region // ignore: cast_nullable_to_non_nullable
@@ -1886,7 +1886,9 @@ as Tone?,verificationStatus: freezed == verificationStatus ? _self.verificationS
 as VerificationStatus?,hasLocalCoverage: freezed == hasLocalCoverage ? _self.hasLocalCoverage : hasLocalCoverage // ignore: cast_nullable_to_non_nullable
 as bool?,from: freezed == from ? _self.from : from // ignore: cast_nullable_to_non_nullable
 as DateTime?,to: freezed == to ? _self.to : to // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable
+as int,pageSize: null == pageSize ? _self.pageSize : pageSize // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 
@@ -1971,10 +1973,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? query,  String? region,  String? countryCode,  StoryCategory? category,  Severity? severity,  Tone? tone,  VerificationStatus? verificationStatus,  bool? hasLocalCoverage,  DateTime? from,  DateTime? to)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? query,  String? region,  String? countryCode,  StoryCategory? category,  Severity? severity,  Tone? tone,  VerificationStatus? verificationStatus,  bool? hasLocalCoverage,  DateTime? from,  DateTime? to,  int page,  int pageSize)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _StoryFilter() when $default != null:
-return $default(_that.query,_that.region,_that.countryCode,_that.category,_that.severity,_that.tone,_that.verificationStatus,_that.hasLocalCoverage,_that.from,_that.to);case _:
+return $default(_that.query,_that.region,_that.countryCode,_that.category,_that.severity,_that.tone,_that.verificationStatus,_that.hasLocalCoverage,_that.from,_that.to,_that.page,_that.pageSize);case _:
   return orElse();
 
 }
@@ -1992,10 +1994,10 @@ return $default(_that.query,_that.region,_that.countryCode,_that.category,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? query,  String? region,  String? countryCode,  StoryCategory? category,  Severity? severity,  Tone? tone,  VerificationStatus? verificationStatus,  bool? hasLocalCoverage,  DateTime? from,  DateTime? to)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? query,  String? region,  String? countryCode,  StoryCategory? category,  Severity? severity,  Tone? tone,  VerificationStatus? verificationStatus,  bool? hasLocalCoverage,  DateTime? from,  DateTime? to,  int page,  int pageSize)  $default,) {final _that = this;
 switch (_that) {
 case _StoryFilter():
-return $default(_that.query,_that.region,_that.countryCode,_that.category,_that.severity,_that.tone,_that.verificationStatus,_that.hasLocalCoverage,_that.from,_that.to);case _:
+return $default(_that.query,_that.region,_that.countryCode,_that.category,_that.severity,_that.tone,_that.verificationStatus,_that.hasLocalCoverage,_that.from,_that.to,_that.page,_that.pageSize);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -2012,10 +2014,10 @@ return $default(_that.query,_that.region,_that.countryCode,_that.category,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? query,  String? region,  String? countryCode,  StoryCategory? category,  Severity? severity,  Tone? tone,  VerificationStatus? verificationStatus,  bool? hasLocalCoverage,  DateTime? from,  DateTime? to)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? query,  String? region,  String? countryCode,  StoryCategory? category,  Severity? severity,  Tone? tone,  VerificationStatus? verificationStatus,  bool? hasLocalCoverage,  DateTime? from,  DateTime? to,  int page,  int pageSize)?  $default,) {final _that = this;
 switch (_that) {
 case _StoryFilter() when $default != null:
-return $default(_that.query,_that.region,_that.countryCode,_that.category,_that.severity,_that.tone,_that.verificationStatus,_that.hasLocalCoverage,_that.from,_that.to);case _:
+return $default(_that.query,_that.region,_that.countryCode,_that.category,_that.severity,_that.tone,_that.verificationStatus,_that.hasLocalCoverage,_that.from,_that.to,_that.page,_that.pageSize);case _:
   return null;
 
 }
@@ -2027,7 +2029,7 @@ return $default(_that.query,_that.region,_that.countryCode,_that.category,_that.
 
 
 class _StoryFilter implements StoryFilter {
-  const _StoryFilter({this.query, this.region, this.countryCode, this.category, this.severity, this.tone, this.verificationStatus, this.hasLocalCoverage, this.from, this.to});
+  const _StoryFilter({this.query, this.region, this.countryCode, this.category, this.severity, this.tone, this.verificationStatus, this.hasLocalCoverage, this.from, this.to, this.page = 1, this.pageSize = 20});
   
 
 @override final  String? query;
@@ -2040,6 +2042,8 @@ class _StoryFilter implements StoryFilter {
 @override final  bool? hasLocalCoverage;
 @override final  DateTime? from;
 @override final  DateTime? to;
+@override@JsonKey() final  int page;
+@override@JsonKey() final  int pageSize;
 
 /// Create a copy of StoryFilter
 /// with the given fields replaced by the non-null parameter values.
@@ -2051,16 +2055,16 @@ _$StoryFilterCopyWith<_StoryFilter> get copyWith => __$StoryFilterCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StoryFilter&&(identical(other.query, query) || other.query == query)&&(identical(other.region, region) || other.region == region)&&(identical(other.countryCode, countryCode) || other.countryCode == countryCode)&&(identical(other.category, category) || other.category == category)&&(identical(other.severity, severity) || other.severity == severity)&&(identical(other.tone, tone) || other.tone == tone)&&(identical(other.verificationStatus, verificationStatus) || other.verificationStatus == verificationStatus)&&(identical(other.hasLocalCoverage, hasLocalCoverage) || other.hasLocalCoverage == hasLocalCoverage)&&(identical(other.from, from) || other.from == from)&&(identical(other.to, to) || other.to == to));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StoryFilter&&(identical(other.query, query) || other.query == query)&&(identical(other.region, region) || other.region == region)&&(identical(other.countryCode, countryCode) || other.countryCode == countryCode)&&(identical(other.category, category) || other.category == category)&&(identical(other.severity, severity) || other.severity == severity)&&(identical(other.tone, tone) || other.tone == tone)&&(identical(other.verificationStatus, verificationStatus) || other.verificationStatus == verificationStatus)&&(identical(other.hasLocalCoverage, hasLocalCoverage) || other.hasLocalCoverage == hasLocalCoverage)&&(identical(other.from, from) || other.from == from)&&(identical(other.to, to) || other.to == to)&&(identical(other.page, page) || other.page == page)&&(identical(other.pageSize, pageSize) || other.pageSize == pageSize));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,query,region,countryCode,category,severity,tone,verificationStatus,hasLocalCoverage,from,to);
+int get hashCode => Object.hash(runtimeType,query,region,countryCode,category,severity,tone,verificationStatus,hasLocalCoverage,from,to,page,pageSize);
 
 @override
 String toString() {
-  return 'StoryFilter(query: $query, region: $region, countryCode: $countryCode, category: $category, severity: $severity, tone: $tone, verificationStatus: $verificationStatus, hasLocalCoverage: $hasLocalCoverage, from: $from, to: $to)';
+  return 'StoryFilter(query: $query, region: $region, countryCode: $countryCode, category: $category, severity: $severity, tone: $tone, verificationStatus: $verificationStatus, hasLocalCoverage: $hasLocalCoverage, from: $from, to: $to, page: $page, pageSize: $pageSize)';
 }
 
 
@@ -2071,7 +2075,7 @@ abstract mixin class _$StoryFilterCopyWith<$Res> implements $StoryFilterCopyWith
   factory _$StoryFilterCopyWith(_StoryFilter value, $Res Function(_StoryFilter) _then) = __$StoryFilterCopyWithImpl;
 @override @useResult
 $Res call({
- String? query, String? region, String? countryCode, StoryCategory? category, Severity? severity, Tone? tone, VerificationStatus? verificationStatus, bool? hasLocalCoverage, DateTime? from, DateTime? to
+ String? query, String? region, String? countryCode, StoryCategory? category, Severity? severity, Tone? tone, VerificationStatus? verificationStatus, bool? hasLocalCoverage, DateTime? from, DateTime? to, int page, int pageSize
 });
 
 
@@ -2088,7 +2092,7 @@ class __$StoryFilterCopyWithImpl<$Res>
 
 /// Create a copy of StoryFilter
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? query = freezed,Object? region = freezed,Object? countryCode = freezed,Object? category = freezed,Object? severity = freezed,Object? tone = freezed,Object? verificationStatus = freezed,Object? hasLocalCoverage = freezed,Object? from = freezed,Object? to = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? query = freezed,Object? region = freezed,Object? countryCode = freezed,Object? category = freezed,Object? severity = freezed,Object? tone = freezed,Object? verificationStatus = freezed,Object? hasLocalCoverage = freezed,Object? from = freezed,Object? to = freezed,Object? page = null,Object? pageSize = null,}) {
   return _then(_StoryFilter(
 query: freezed == query ? _self.query : query // ignore: cast_nullable_to_non_nullable
 as String?,region: freezed == region ? _self.region : region // ignore: cast_nullable_to_non_nullable
@@ -2100,7 +2104,9 @@ as Tone?,verificationStatus: freezed == verificationStatus ? _self.verificationS
 as VerificationStatus?,hasLocalCoverage: freezed == hasLocalCoverage ? _self.hasLocalCoverage : hasLocalCoverage // ignore: cast_nullable_to_non_nullable
 as bool?,from: freezed == from ? _self.from : from // ignore: cast_nullable_to_non_nullable
 as DateTime?,to: freezed == to ? _self.to : to // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable
+as int,pageSize: null == pageSize ? _self.pageSize : pageSize // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 
@@ -2385,7 +2391,7 @@ as int,
 /// @nodoc
 mixin _$AiStoryAnswer {
 
- String get answer; bool get insufficientEvidence; double get confidenceScore; List<String> get sourceIds; DateTime get generatedAt;
+ String get answer; bool get insufficientEvidence; double get confidenceScore; List<String> get sourceIds; DateTime get generatedAt; String? get uncertainty;
 /// Create a copy of AiStoryAnswer
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2396,16 +2402,16 @@ $AiStoryAnswerCopyWith<AiStoryAnswer> get copyWith => _$AiStoryAnswerCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AiStoryAnswer&&(identical(other.answer, answer) || other.answer == answer)&&(identical(other.insufficientEvidence, insufficientEvidence) || other.insufficientEvidence == insufficientEvidence)&&(identical(other.confidenceScore, confidenceScore) || other.confidenceScore == confidenceScore)&&const DeepCollectionEquality().equals(other.sourceIds, sourceIds)&&(identical(other.generatedAt, generatedAt) || other.generatedAt == generatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AiStoryAnswer&&(identical(other.answer, answer) || other.answer == answer)&&(identical(other.insufficientEvidence, insufficientEvidence) || other.insufficientEvidence == insufficientEvidence)&&(identical(other.confidenceScore, confidenceScore) || other.confidenceScore == confidenceScore)&&const DeepCollectionEquality().equals(other.sourceIds, sourceIds)&&(identical(other.generatedAt, generatedAt) || other.generatedAt == generatedAt)&&(identical(other.uncertainty, uncertainty) || other.uncertainty == uncertainty));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,answer,insufficientEvidence,confidenceScore,const DeepCollectionEquality().hash(sourceIds),generatedAt);
+int get hashCode => Object.hash(runtimeType,answer,insufficientEvidence,confidenceScore,const DeepCollectionEquality().hash(sourceIds),generatedAt,uncertainty);
 
 @override
 String toString() {
-  return 'AiStoryAnswer(answer: $answer, insufficientEvidence: $insufficientEvidence, confidenceScore: $confidenceScore, sourceIds: $sourceIds, generatedAt: $generatedAt)';
+  return 'AiStoryAnswer(answer: $answer, insufficientEvidence: $insufficientEvidence, confidenceScore: $confidenceScore, sourceIds: $sourceIds, generatedAt: $generatedAt, uncertainty: $uncertainty)';
 }
 
 
@@ -2416,7 +2422,7 @@ abstract mixin class $AiStoryAnswerCopyWith<$Res>  {
   factory $AiStoryAnswerCopyWith(AiStoryAnswer value, $Res Function(AiStoryAnswer) _then) = _$AiStoryAnswerCopyWithImpl;
 @useResult
 $Res call({
- String answer, bool insufficientEvidence, double confidenceScore, List<String> sourceIds, DateTime generatedAt
+ String answer, bool insufficientEvidence, double confidenceScore, List<String> sourceIds, DateTime generatedAt, String? uncertainty
 });
 
 
@@ -2433,14 +2439,15 @@ class _$AiStoryAnswerCopyWithImpl<$Res>
 
 /// Create a copy of AiStoryAnswer
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? answer = null,Object? insufficientEvidence = null,Object? confidenceScore = null,Object? sourceIds = null,Object? generatedAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? answer = null,Object? insufficientEvidence = null,Object? confidenceScore = null,Object? sourceIds = null,Object? generatedAt = null,Object? uncertainty = freezed,}) {
   return _then(_self.copyWith(
 answer: null == answer ? _self.answer : answer // ignore: cast_nullable_to_non_nullable
 as String,insufficientEvidence: null == insufficientEvidence ? _self.insufficientEvidence : insufficientEvidence // ignore: cast_nullable_to_non_nullable
 as bool,confidenceScore: null == confidenceScore ? _self.confidenceScore : confidenceScore // ignore: cast_nullable_to_non_nullable
 as double,sourceIds: null == sourceIds ? _self.sourceIds : sourceIds // ignore: cast_nullable_to_non_nullable
 as List<String>,generatedAt: null == generatedAt ? _self.generatedAt : generatedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,
+as DateTime,uncertainty: freezed == uncertainty ? _self.uncertainty : uncertainty // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -2525,10 +2532,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String answer,  bool insufficientEvidence,  double confidenceScore,  List<String> sourceIds,  DateTime generatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String answer,  bool insufficientEvidence,  double confidenceScore,  List<String> sourceIds,  DateTime generatedAt,  String? uncertainty)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AiStoryAnswer() when $default != null:
-return $default(_that.answer,_that.insufficientEvidence,_that.confidenceScore,_that.sourceIds,_that.generatedAt);case _:
+return $default(_that.answer,_that.insufficientEvidence,_that.confidenceScore,_that.sourceIds,_that.generatedAt,_that.uncertainty);case _:
   return orElse();
 
 }
@@ -2546,10 +2553,10 @@ return $default(_that.answer,_that.insufficientEvidence,_that.confidenceScore,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String answer,  bool insufficientEvidence,  double confidenceScore,  List<String> sourceIds,  DateTime generatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String answer,  bool insufficientEvidence,  double confidenceScore,  List<String> sourceIds,  DateTime generatedAt,  String? uncertainty)  $default,) {final _that = this;
 switch (_that) {
 case _AiStoryAnswer():
-return $default(_that.answer,_that.insufficientEvidence,_that.confidenceScore,_that.sourceIds,_that.generatedAt);case _:
+return $default(_that.answer,_that.insufficientEvidence,_that.confidenceScore,_that.sourceIds,_that.generatedAt,_that.uncertainty);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -2566,10 +2573,10 @@ return $default(_that.answer,_that.insufficientEvidence,_that.confidenceScore,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String answer,  bool insufficientEvidence,  double confidenceScore,  List<String> sourceIds,  DateTime generatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String answer,  bool insufficientEvidence,  double confidenceScore,  List<String> sourceIds,  DateTime generatedAt,  String? uncertainty)?  $default,) {final _that = this;
 switch (_that) {
 case _AiStoryAnswer() when $default != null:
-return $default(_that.answer,_that.insufficientEvidence,_that.confidenceScore,_that.sourceIds,_that.generatedAt);case _:
+return $default(_that.answer,_that.insufficientEvidence,_that.confidenceScore,_that.sourceIds,_that.generatedAt,_that.uncertainty);case _:
   return null;
 
 }
@@ -2581,7 +2588,7 @@ return $default(_that.answer,_that.insufficientEvidence,_that.confidenceScore,_t
 
 
 class _AiStoryAnswer implements AiStoryAnswer {
-  const _AiStoryAnswer({required this.answer, required this.insufficientEvidence, required this.confidenceScore, required final  List<String> sourceIds, required this.generatedAt}): _sourceIds = sourceIds;
+  const _AiStoryAnswer({required this.answer, required this.insufficientEvidence, required this.confidenceScore, required final  List<String> sourceIds, required this.generatedAt, this.uncertainty}): _sourceIds = sourceIds;
   
 
 @override final  String answer;
@@ -2595,6 +2602,7 @@ class _AiStoryAnswer implements AiStoryAnswer {
 }
 
 @override final  DateTime generatedAt;
+@override final  String? uncertainty;
 
 /// Create a copy of AiStoryAnswer
 /// with the given fields replaced by the non-null parameter values.
@@ -2606,16 +2614,16 @@ _$AiStoryAnswerCopyWith<_AiStoryAnswer> get copyWith => __$AiStoryAnswerCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AiStoryAnswer&&(identical(other.answer, answer) || other.answer == answer)&&(identical(other.insufficientEvidence, insufficientEvidence) || other.insufficientEvidence == insufficientEvidence)&&(identical(other.confidenceScore, confidenceScore) || other.confidenceScore == confidenceScore)&&const DeepCollectionEquality().equals(other._sourceIds, _sourceIds)&&(identical(other.generatedAt, generatedAt) || other.generatedAt == generatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AiStoryAnswer&&(identical(other.answer, answer) || other.answer == answer)&&(identical(other.insufficientEvidence, insufficientEvidence) || other.insufficientEvidence == insufficientEvidence)&&(identical(other.confidenceScore, confidenceScore) || other.confidenceScore == confidenceScore)&&const DeepCollectionEquality().equals(other._sourceIds, _sourceIds)&&(identical(other.generatedAt, generatedAt) || other.generatedAt == generatedAt)&&(identical(other.uncertainty, uncertainty) || other.uncertainty == uncertainty));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,answer,insufficientEvidence,confidenceScore,const DeepCollectionEquality().hash(_sourceIds),generatedAt);
+int get hashCode => Object.hash(runtimeType,answer,insufficientEvidence,confidenceScore,const DeepCollectionEquality().hash(_sourceIds),generatedAt,uncertainty);
 
 @override
 String toString() {
-  return 'AiStoryAnswer(answer: $answer, insufficientEvidence: $insufficientEvidence, confidenceScore: $confidenceScore, sourceIds: $sourceIds, generatedAt: $generatedAt)';
+  return 'AiStoryAnswer(answer: $answer, insufficientEvidence: $insufficientEvidence, confidenceScore: $confidenceScore, sourceIds: $sourceIds, generatedAt: $generatedAt, uncertainty: $uncertainty)';
 }
 
 
@@ -2626,7 +2634,7 @@ abstract mixin class _$AiStoryAnswerCopyWith<$Res> implements $AiStoryAnswerCopy
   factory _$AiStoryAnswerCopyWith(_AiStoryAnswer value, $Res Function(_AiStoryAnswer) _then) = __$AiStoryAnswerCopyWithImpl;
 @override @useResult
 $Res call({
- String answer, bool insufficientEvidence, double confidenceScore, List<String> sourceIds, DateTime generatedAt
+ String answer, bool insufficientEvidence, double confidenceScore, List<String> sourceIds, DateTime generatedAt, String? uncertainty
 });
 
 
@@ -2643,14 +2651,15 @@ class __$AiStoryAnswerCopyWithImpl<$Res>
 
 /// Create a copy of AiStoryAnswer
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? answer = null,Object? insufficientEvidence = null,Object? confidenceScore = null,Object? sourceIds = null,Object? generatedAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? answer = null,Object? insufficientEvidence = null,Object? confidenceScore = null,Object? sourceIds = null,Object? generatedAt = null,Object? uncertainty = freezed,}) {
   return _then(_AiStoryAnswer(
 answer: null == answer ? _self.answer : answer // ignore: cast_nullable_to_non_nullable
 as String,insufficientEvidence: null == insufficientEvidence ? _self.insufficientEvidence : insufficientEvidence // ignore: cast_nullable_to_non_nullable
 as bool,confidenceScore: null == confidenceScore ? _self.confidenceScore : confidenceScore // ignore: cast_nullable_to_non_nullable
 as double,sourceIds: null == sourceIds ? _self._sourceIds : sourceIds // ignore: cast_nullable_to_non_nullable
 as List<String>,generatedAt: null == generatedAt ? _self.generatedAt : generatedAt // ignore: cast_nullable_to_non_nullable
-as DateTime,
+as DateTime,uncertainty: freezed == uncertainty ? _self.uncertainty : uncertainty // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

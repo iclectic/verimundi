@@ -12,7 +12,7 @@ Related: `docs/api_contract.md`, `backend/README.md`, `docs/release/android_sdk_
 | Item | Notes |
 | --- | --- |
 | API reachable | HTTPS preferred for shared staging; `http://localhost:5080` OK for compose |
-| Postgres migrated + seeded | Fixture path OK for staging honesty if labelled; production sources need Tubo approval |
+| Postgres migrated + seeded | Fixtures + UN News approved when `EnableRss=true`; ReliefWeb/WHO remain restricted — see `docs/sources/source_registry.md` |
 | Flutter SDK | `flutter doctor` green for the target device (web / desktop / Android if SDK present) |
 | Secrets out of git | Ops token, DB passwords, GenAI keys — env only |
 
@@ -136,11 +136,11 @@ flutter run \
 
 ## 6. What this runbook does **not** cover
 
-- Approving RSS/GDELT/commercial sources (Tubo / legal)
+- Production opt-in for `EnableRss`/`EnableGdelt` + advise UN; written clearance for ReliefWeb/WHO/commercial feeds
 - Production GenAI keys or cost controls
 - Play signing / Android APK (see `android_sdk_blocker.md`)
 - Notifications (§26 truncated — do not invent)
-- GeoJSON choropleth assets
+- Optional higher-res GeoJSON (110m PD asset already vendored)
 
 ---
 

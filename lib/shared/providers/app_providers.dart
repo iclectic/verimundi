@@ -87,6 +87,33 @@ class StoriesFeedState {
     required this.stories,
     required this.freshness,
     required this.cacheLabel,
+    required this.page,
+    required this.pageSize,
+    required this.total,
+    this.fromCache = false,
+    this.usedSearchEndpoint = false,
+  });
+
+  final List<StoryCluster> stories;
+  final CacheFreshness freshness;
+  final String cacheLabel;
+  final int page;
+  final int pageSize;
+  final int total;
+  final bool fromCache;
+  final bool usedSearchEndpoint;
+
+  bool get hasMore => page * pageSize < total;
+  int get totalPages =>
+      pageSize <= 0 ? 1 : ((total + pageSize - 1) ~/ pageSize).clamp(1, 1 << 30);
+}
+
+/// Offline-aware list used by underreported / positive screens.
+class CachedStoriesListState {
+  const CachedStoriesListState({
+    required this.stories,
+    required this.freshness,
+    required this.cacheLabel,
     this.fromCache = false,
   });
 
@@ -104,20 +131,89 @@ final storiesFeedProvider = FutureProvider<StoriesFeedState>((ref) async {
       .getSavedStoryIds();
   final filter = ref.watch(storyFilterProvider);
   final page = ref.watch(feedPageProvider);
+  final pagedFilter = filter.copyWith(page: page < 1 ? 1 : page);
+  final usedSearch =
+      pagedFilter.query != null && pagedFilter.query!.trim().isNotEmpty;
   final cacheKey =
-      'stories:${AppConstants.isMockApi ? 'mock' : 'remote'}:$page:${filter.query}:${filter.region}:${filter.countryCode}:${filter.category}:${filter.severity}:${filter.tone}:${filter.verificationStatus}:${filter.hasLocalCoverage}';
+      'stories:${AppConstants.isMockApi ? 'mock' : 'remote'}:${usedSearch ? 'search' : 'browse'}:$page:${pagedFilter.pageSize}:${filter.query}:${filter.region}:${filter.countryCode}:${filter.category}:${filter.severity}:${filter.tone}:${filter.verificationStatus}:${filter.hasLocalCoverage}';
 
   try {
-    final stories = await repository.getStories(filter);
-    final marked = stories
+    final result = await repository.getStories(pagedFilter);
+    final marked = result.stories
         .map((story) => story.copyWith(isSaved: savedIds.contains(story.id)))
         .toList();
     await cache.saveStories(
       cacheKey: cacheKey,
       stories: marked,
       sourceMode: AppConstants.isMockApi ? 'mock' : 'remote',
+      total: result.total,
+      page: result.page,
+      pageSize: result.pageSize,
     );
     return StoriesFeedState(
+      stories: marked,
+      freshness: CacheFreshness.fresh,
+      cacheLabel: usedSearch ? 'Live search' : 'Live feed',
+      page: result.page,
+      pageSize: result.pageSize,
+      total: result.total,
+      usedSearchEndpoint: usedSearch,
+    );
+  } catch (_) {
+    final cached = await cache.readStories(cacheKey);
+    if (cached != null) {
+      final resolvedPage = cached.page ?? (page < 1 ? 1 : page);
+      final resolvedPageSize = cached.pageSize ?? pagedFilter.pageSize;
+      return StoriesFeedState(
+        stories: cached.stories
+            .map(
+              (story) => story.copyWith(isSaved: savedIds.contains(story.id)),
+            )
+            .toList(),
+        freshness: cached.freshness,
+        cacheLabel: cached.label,
+        fromCache: true,
+        page: resolvedPage,
+        pageSize: resolvedPageSize,
+        total: cached.total,
+        usedSearchEndpoint: usedSearch,
+      );
+    }
+    rethrow;
+  }
+});
+
+/// Backwards-compatible stories list used by existing screens/tests.
+final storiesProvider = FutureProvider<List<StoryCluster>>((ref) async {
+  final feed = await ref.watch(storiesFeedProvider.future);
+  return feed.stories;
+});
+
+final underreportedStoriesProvider =
+    FutureProvider<CachedStoriesListState>((ref) async {
+  final repository = ref.watch(newsRepositoryProvider);
+  final cache = ref.watch(feedCacheRepositoryProvider);
+  final filter = ref.watch(storyFilterProvider);
+  final savedIds = await ref
+      .watch(savedStoriesRepositoryProvider)
+      .getSavedStoryIds();
+  final cacheKey =
+      'underreported:${AppConstants.isMockApi ? 'mock' : 'remote'}:${filter.query}:${filter.region}:${filter.countryCode}:${filter.category}:${filter.severity}:${filter.tone}:${filter.verificationStatus}:${filter.hasLocalCoverage}';
+
+  try {
+    final stories = await repository.getUnderreportedStories();
+    const filtering = StoryFiltering();
+    final marked = filtering
+        .apply(stories, filter)
+        .map((story) => story.copyWith(isSaved: savedIds.contains(story.id)))
+        .toList();
+    await cache.saveStories(
+      cacheKey: cacheKey,
+      stories: marked,
+      sourceMode: AppConstants.isMockApi ? 'mock' : 'remote',
+      total: marked.length,
+    );
+    return CachedStoriesListState(
       stories: marked,
       freshness: CacheFreshness.fresh,
       cacheLabel: 'Live feed',
@@ -125,7 +221,7 @@ final storiesFeedProvider = FutureProvider<StoriesFeedState>((ref) async {
   } catch (_) {
     final cached = await cache.readStories(cacheKey);
     if (cached != null) {
-      return StoriesFeedState(
+      return CachedStoriesListState(
         stories: cached.stories
             .map(
               (story) => story.copyWith(isSaved: savedIds.contains(story.id)),
@@ -140,37 +236,49 @@ final storiesFeedProvider = FutureProvider<StoriesFeedState>((ref) async {
   }
 });
 
-/// Backwards-compatible stories list used by existing screens/tests.
-final storiesProvider = FutureProvider<List<StoryCluster>>((ref) async {
-  final feed = await ref.watch(storiesFeedProvider.future);
-  return feed.stories;
-});
-
-final underreportedStoriesProvider = FutureProvider<List<StoryCluster>>((
+final positiveStoriesProvider = FutureProvider<CachedStoriesListState>((
   ref,
 ) async {
   final repository = ref.watch(newsRepositoryProvider);
-  final filter = ref.watch(storyFilterProvider);
+  final cache = ref.watch(feedCacheRepositoryProvider);
   final savedIds = await ref
       .watch(savedStoriesRepositoryProvider)
       .getSavedStoryIds();
-  final stories = await repository.getUnderreportedStories();
-  const filtering = StoryFiltering();
-  return filtering
-      .apply(stories, filter)
-      .map((story) => story.copyWith(isSaved: savedIds.contains(story.id)))
-      .toList();
-});
+  final cacheKey =
+      'positive:${AppConstants.isMockApi ? 'mock' : 'remote'}';
 
-final positiveStoriesProvider = FutureProvider<List<StoryCluster>>((ref) async {
-  final repository = ref.watch(newsRepositoryProvider);
-  final savedIds = await ref
-      .watch(savedStoriesRepositoryProvider)
-      .getSavedStoryIds();
-  final stories = await repository.getPositiveStories();
-  return stories
-      .map((story) => story.copyWith(isSaved: savedIds.contains(story.id)))
-      .toList();
+  try {
+    final stories = await repository.getPositiveStories();
+    final marked = stories
+        .map((story) => story.copyWith(isSaved: savedIds.contains(story.id)))
+        .toList();
+    await cache.saveStories(
+      cacheKey: cacheKey,
+      stories: marked,
+      sourceMode: AppConstants.isMockApi ? 'mock' : 'remote',
+      total: marked.length,
+    );
+    return CachedStoriesListState(
+      stories: marked,
+      freshness: CacheFreshness.fresh,
+      cacheLabel: 'Live feed',
+    );
+  } catch (_) {
+    final cached = await cache.readStories(cacheKey);
+    if (cached != null) {
+      return CachedStoriesListState(
+        stories: cached.stories
+            .map(
+              (story) => story.copyWith(isSaved: savedIds.contains(story.id)),
+            )
+            .toList(),
+        freshness: cached.freshness,
+        cacheLabel: cached.label,
+        fromCache: true,
+      );
+    }
+    rethrow;
+  }
 });
 
 final countriesProvider = FutureProvider<List<CountryNewsStatus>>((ref) {

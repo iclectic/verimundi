@@ -1,30 +1,30 @@
 import 'package:dio/dio.dart';
 
+import '../../../core/constants/report_reasons.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/remote_api_exception.dart';
 import '../../../shared/models/news_models.dart';
 import '../domain/news_repository.dart';
+import '../domain/story_page_result.dart';
 import 'enum_parsing.dart';
-import 'story_filtering.dart';
 
 class RemoteNewsRepository implements NewsRepository {
-  RemoteNewsRepository({
-    required ApiClient client,
-    StoryFiltering filtering = const StoryFiltering(),
-  }) : _client = client,
-       _filtering = filtering;
+  RemoteNewsRepository({required ApiClient client}) : _client = client;
 
   final ApiClient _client;
-  final StoryFiltering _filtering;
 
   Dio get _dio => _client.dio;
 
   @override
-  Future<List<StoryCluster>> getStories(StoryFilter filter) async {
-    final response = await _get('/v1/stories', query: _storyQuery(filter));
-    final stories = _parseStoryList(response.data);
-    // Server already filters; apply local filter for parity with any client-only fields.
-    return _filtering.apply(stories, filter);
+  Future<StoryPageResult> getStories(StoryFilter filter) async {
+    final hasQuery = filter.query != null && filter.query!.trim().isNotEmpty;
+    // Phase 9: text discovery hits `/v1/search` (broader match). Browse uses `/v1/stories`.
+    final path = hasQuery ? '/v1/search' : '/v1/stories';
+    final response = await _get(
+      path,
+      query: hasQuery ? _searchQuery(filter) : _storyQuery(filter),
+    );
+    return _parseStoryPage(response.data, filter);
   }
 
   @override
@@ -66,12 +66,33 @@ class RemoteNewsRepository implements NewsRepository {
     required String reason,
     String? details,
   }) async {
+    final trimmedReason = reason.trim();
+    if (!ReportReasons.isAllowed(trimmedReason)) {
+      throw const RemoteApiException(
+        kind: RemoteApiErrorKind.badRequest,
+        message: 'Reason must be one of the supported report categories.',
+        code: 'invalid_reason',
+        statusCode: 400,
+      );
+    }
+    final trimmedDetails = details?.trim();
+    if (trimmedDetails != null &&
+        trimmedDetails.length > ReportReasons.maxDetailsLength) {
+      throw const RemoteApiException(
+        kind: RemoteApiErrorKind.badRequest,
+        message: 'Details must be at most 500 characters.',
+        code: 'invalid_details',
+        statusCode: 400,
+      );
+    }
+
     try {
       await _dio.post<void>(
         '/v1/stories/$storyId/reports',
         data: {
-          'reason': reason,
-          if (details != null && details.isNotEmpty) 'details': details,
+          'reason': trimmedReason,
+          if (trimmedDetails != null && trimmedDetails.isNotEmpty)
+            'details': trimmedDetails,
         },
       );
     } on DioException catch (error) {
@@ -80,27 +101,54 @@ class RemoteNewsRepository implements NewsRepository {
   }
 
   Future<AiStoryAnswer> askQuestion(String storyId, String question) async {
+    final trimmed = question.trim();
+    if (trimmed.isEmpty || trimmed.length > 500) {
+      throw const RemoteApiException(
+        kind: RemoteApiErrorKind.badRequest,
+        message: 'Question must be between 1 and 500 characters.',
+        code: 'invalid_question',
+        statusCode: 400,
+      );
+    }
+
     try {
+      // GenAI Ask can be slower than feed GETs — allow up to backend Ai:TimeoutSeconds.
       final response = await _dio.post<Map<String, dynamic>>(
         '/v1/stories/$storyId/questions',
-        data: {'question': question},
-        options: Options(receiveTimeout: const Duration(seconds: 20)),
+        data: {'question': trimmed},
+        options: Options(
+          sendTimeout: const Duration(seconds: 20),
+          receiveTimeout: const Duration(seconds: 45),
+        ),
       );
-      final data = response.data!;
-      return AiStoryAnswer(
-        answer: data['answer'] as String? ?? '',
-        insufficientEvidence: data['insufficientEvidence'] as bool? ?? false,
-        confidenceScore: (data['confidenceScore'] as num?)?.toDouble() ?? 0,
-        sourceIds: (data['sourceIds'] as List<dynamic>? ?? const [])
-            .map((e) => e.toString())
-            .toList(),
-        generatedAt:
-            DateTime.tryParse(data['generatedAt'] as String? ?? '') ??
-            DateTime.now().toUtc(),
-      );
+      final data = response.data;
+      if (data == null) {
+        throw const FormatException('Ask VeriMundi returned an empty body');
+      }
+      return parseAiStoryAnswer(data);
     } on DioException catch (error) {
       throw _mapError(error);
     }
+  }
+
+  /// Visible for unit tests — maps `/v1/.../questions` JSON (incl. uncertainty).
+  static AiStoryAnswer parseAiStoryAnswer(Map<String, dynamic> data) {
+    final confidence =
+        (data['confidenceScore'] as num?)?.toDouble() ??
+        (data['confidence'] as num?)?.toDouble() ??
+        0;
+    return AiStoryAnswer(
+      answer: data['answer'] as String? ?? '',
+      insufficientEvidence: data['insufficientEvidence'] as bool? ?? false,
+      confidenceScore: confidence,
+      sourceIds: (data['sourceIds'] as List<dynamic>? ?? const [])
+          .map((e) => e.toString())
+          .toList(),
+      generatedAt:
+          DateTime.tryParse(data['generatedAt'] as String? ?? '')?.toUtc() ??
+          DateTime.now().toUtc(),
+      uncertainty: data['uncertainty'] as String?,
+    );
   }
 
   Future<Response<dynamic>> _get(
@@ -115,9 +163,9 @@ class RemoteNewsRepository implements NewsRepository {
   }
 
   Map<String, dynamic> _storyQuery(StoryFilter filter) {
+    final page = filter.page < 1 ? 1 : filter.page;
+    final pageSize = filter.pageSize.clamp(1, 100);
     return {
-      if (filter.query != null && filter.query!.trim().isNotEmpty)
-        'query': filter.query!.trim(),
       if (filter.region != null) 'region': filter.region,
       if (filter.countryCode != null) 'countryCode': filter.countryCode,
       if (filter.category != null) 'category': filter.category!.name,
@@ -125,23 +173,61 @@ class RemoteNewsRepository implements NewsRepository {
       if (filter.tone != null) 'tone': filter.tone!.name,
       if (filter.verificationStatus != null)
         'verification': filter.verificationStatus!.name,
-      'page': 1,
-      'pageSize': 100,
+      if (filter.hasLocalCoverage == true) 'hasLocalCoverage': true,
+      'page': page,
+      'pageSize': pageSize,
     };
   }
 
-  List<StoryCluster> _parseStoryList(dynamic data) {
+  Map<String, dynamic> _searchQuery(StoryFilter filter) {
+    final page = filter.page < 1 ? 1 : filter.page;
+    final pageSize = filter.pageSize.clamp(1, 100);
+    return {
+      'q': filter.query!.trim(),
+      if (filter.region != null) 'region': filter.region,
+      if (filter.countryCode != null) 'countryCode': filter.countryCode,
+      if (filter.category != null) 'category': filter.category!.name,
+      if (filter.severity != null) 'severity': filter.severity!.name,
+      if (filter.tone != null) 'tone': filter.tone!.name,
+      if (filter.verificationStatus != null)
+        'verification': filter.verificationStatus!.name,
+      if (filter.hasLocalCoverage == true) 'hasLocalCoverage': true,
+      'page': page,
+      'pageSize': pageSize,
+    };
+  }
+
+  StoryPageResult _parseStoryPage(dynamic data, StoryFilter filter) {
+    final page = filter.page < 1 ? 1 : filter.page;
+    final pageSize = filter.pageSize.clamp(1, 100);
     if (data is Map<String, dynamic> && data['items'] is List) {
-      return (data['items'] as List<dynamic>)
+      final stories = (data['items'] as List<dynamic>)
           .map((item) => _parseStory(item as Map<String, dynamic>))
           .toList();
+      final total = data['total'] as int? ?? stories.length;
+      return StoryPageResult(
+        stories: stories,
+        page: data['page'] as int? ?? page,
+        pageSize: data['pageSize'] as int? ?? pageSize,
+        total: total,
+      );
     }
     if (data is List<dynamic>) {
-      return data
+      final stories = data
           .map((item) => _parseStory(item as Map<String, dynamic>))
           .toList();
+      return StoryPageResult(
+        stories: stories,
+        page: page,
+        pageSize: pageSize,
+        total: stories.length,
+      );
     }
     throw const FormatException('Unexpected stories payload shape');
+  }
+
+  List<StoryCluster> _parseStoryList(dynamic data) {
+    return _parseStoryPage(data, const StoryFilter()).stories;
   }
 
   StoryCluster _parseStory(Map<String, dynamic> json) {

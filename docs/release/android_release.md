@@ -1,71 +1,97 @@
 # Android Release Runbook
 
-This runbook covers VeriMundi Android packaging for demo (mock) and future live tracks.
+This runbook covers VeriMundi Android packaging for **demo (mock)** and **live (remote)** Play tracks.
 
 ## Environment blocker
 
-Cloud Agent / CI images without an Android SDK cannot produce APK/AAB artefacts. See `docs/release/android_sdk_blocker.md`.
+Cloud Agent / default CI images without an Android SDK cannot produce APK/AAB artefacts.
 
-## Release Posture
+- Probe: `./scripts/check_android_sdk.sh`
+- Detail: `docs/release/android_sdk_blocker.md`
+- CI policy: `docs/release/android_ci_notes.md`
+- Signing: `docs/release/android_signing_checklist.md`
 
-- **Demo track:** `NEWS_API_BASE_URL=mock` with honest demo labelling.
-- **Production track:** `APP_ENV=production` and a real `NEWS_API_BASE_URL`. Production must never use mock news.
+**This environment (2026-10-27):** `ANDROID_HOME` / `ANDROID_SDK_ROOT` unset; `flutter build apk` → *No Android SDK found*. APK/AAB **not** produced here.
 
-`RemoteNewsRepository` is implemented. Still required before a live Play track: rights-cleared sources, privacy legal review, signing secrets, and SDK-capable builders.
+## Release posture
+
+| Track | Dart defines | Store honesty |
+| --- | --- | --- |
+| **Demo / internal** | `NEWS_API_BASE_URL=mock` | Fictional content; demo banner; no live-news claims |
+| **Production / live** | `APP_ENV=production` + real `https://…` API | Remote feeds/Ask/reports; never silent mock (`AppDataMode.misconfigured` if mis-set) |
+
+Still required before a **live** Play track (several are **EXTERNAL**):
+
+- Rights-cleared sources + production ingestion flags (ops)
+- Privacy / Data Safety **legal review**
+- Upload keystore + Play Console account
+- SDK-capable builder
+- Staging API smoke against a real URL
+
+## Network permission
+
+Main manifest includes `INTERNET` so **release** remote builds can reach the API. Debug/profile manifests also declare it for tooling.
 
 ## Signing
 
-Release builds require `android/key.properties`, which must not be committed.
-
-Expected keys:
-
-```properties
-storePassword=<local secret>
-keyPassword=<local secret>
-keyAlias=upload
-storeFile=<path to local upload keystore>
-```
-
-The upload keystore should be owned by the release owner and backed up according to your operational policy. Use Google Play App Signing for production distribution.
+See `docs/release/android_signing_checklist.md`. Release Gradle tasks require `android/key.properties` (gitignored).
 
 ## Versioning
 
-Update `pubspec.yaml` before every Play upload. `versionName` comes from the version before `+`; `versionCode` comes from the integer after `+`.
+Update `pubspec.yaml` before every Play upload (`version: name+code`). Never reuse or lower `versionCode`.
 
-Never upload a bundle with a reused or lower versionCode.
+Current packaged identity:
 
-## Build Artifact
+- Application id: `com.iclectic.verimundi`
+- Label: `VeriMundi`
+- `pubspec.yaml` version: see repo (bump before upload)
 
-The Play artifact is the Android App Bundle generated at:
+## Build artefacts
 
 ```text
-build/app/outputs/bundle/release/app-release.aab
+build/app/outputs/bundle/release/app-release.aab   # Play upload
+build/app/outputs/flutter-apk/app-release.apk      # sideload / QA (optional)
 ```
 
-## Release Checks
+Commands (SDK host only):
 
-- The release build is signed with the release signing config, not the debug key.
-- `android/app/src/main/AndroidManifest.xml` displays `VeriMundi`.
-- Target SDK meets the current Google Play requirement.
-- `NEWS_API_BASE_URL` is `mock` for the demo MVP.
-- `docs/privacy_policy.md` has a public URL.
-- `docs/play_data_safety.md` matches the binary and dependencies.
-- Tests, analysis, and integration journey checks pass.
-- Play pre-launch report has no unresolved blocker.
+```bash
+./scripts/check_android_sdk.sh
 
-## Local Verification Record
+# Demo
+flutter build appbundle \
+  --dart-define=APP_ENV=development \
+  --dart-define=NEWS_API_BASE_URL=mock
 
-Record each release candidate:
+# Production candidate
+flutter build appbundle \
+  --dart-define=APP_ENV=production \
+  --dart-define=NEWS_API_BASE_URL=https://api.example.com
+```
+
+## Release checks
+
+- [ ] Signed with release config (not debug)
+- [ ] Manifest label `VeriMundi`; package `com.iclectic.verimundi`
+- [ ] Target SDK meets current Play requirement (Flutter `targetSdk`)
+- [ ] Dart-defines match the intended track (production ≠ mock)
+- [ ] Public privacy policy URL + Data Safety match binary (**legal EXTERNAL**)
+- [ ] `flutter test` / `flutter analyze` / backend tests green
+- [ ] Play pre-launch report reviewed on an SDK/device host
+- [ ] Screenshots show honest demo vs live posture
+
+## Local verification record
 
 | Field | Value |
-|---|---|
+| --- | --- |
 | Version |  |
 | Build number |  |
 | Commit |  |
+| Track (demo / live) |  |
+| `NEWS_API_BASE_URL` |  |
 | Android devices tested |  |
 | Tablet/foldable tested |  |
 | Large text tested |  |
 | Dark theme tested |  |
 | Play pre-launch report reviewed |  |
-| Data Safety reviewed |  |
-
+| Data Safety / privacy legal review |  |

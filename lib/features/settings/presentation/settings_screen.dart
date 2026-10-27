@@ -41,18 +41,13 @@ class SettingsScreen extends ConsumerWidget {
                 ListTile(
                   leading: const Icon(Icons.smart_toy_outlined),
                   title: const Text('AI transparency'),
-                  subtitle: Text(
-                    AppConstants.isMockApi
-                        ? 'Summaries and answers in mock mode are generated locally from listed fictional source material. The app never stores commercial GenAI provider secrets or calls a provider directly.'
-                        : 'Summaries and answers are produced by the VeriMundi backend from linked source evidence. The Flutter client never stores GenAI secrets.',
-                  ),
+                  subtitle: Text(_aiTransparencyCopy(remoteConfig)),
                 ),
-                const ListTile(
-                  leading: Icon(Icons.privacy_tip_outlined),
-                  title: Text('Privacy'),
-                  subtitle: Text(
-                    'Saved stories are stored locally on this device. This build does not create accounts or send push notifications.',
-                  ),
+                ListTile(
+                  leading: const Icon(Icons.privacy_tip_outlined),
+                  title: const Text('Privacy'),
+                  subtitle: Text(_privacyCopy()),
+                  isThreeLine: true,
                 ),
                 const ListTile(
                   leading: Icon(Icons.info_outline),
@@ -83,6 +78,30 @@ class SettingsScreen extends ConsumerWidget {
     };
   }
 
+  String _privacyCopy() {
+    final local =
+        'Saved stories and feed metadata cache stay on this device. No accounts or push notifications in this build.';
+    if (AppConstants.isMockApi) {
+      return '$local Mock mode does not send Ask questions or problem reports to a server. Privacy policy text remains an engineering draft pending legal review.';
+    }
+    return '$local Remote mode may send Ask questions and optional problem reports to the configured VeriMundi API (rate-limited). Do not include personal data you do not wish to share. Privacy / Play Data Safety answers are drafts — legal review is still required before store submission.';
+  }
+
+  String _aiTransparencyCopy(AsyncValue<AppRemoteConfig?> remoteConfig) {
+    if (AppConstants.isMockApi) {
+      return 'Summaries and answers in mock mode are generated locally from listed fictional source material. The app never stores commercial GenAI provider secrets or calls a provider directly.';
+    }
+    final provider = remoteConfig.asData?.value?.aiProvider;
+    final path = switch (provider) {
+      'openaiCompatible' =>
+        'Backend path: OpenAI-compatible GenAI (host secret). ',
+      'heuristic' => 'Backend path: heuristic grounded synthesis (no GenAI key). ',
+      null => 'Backend AI path unknown until /v1/app/config loads. ',
+      _ => 'Backend path: $provider. ',
+    };
+    return '${path}Summaries and Ask VeriMundi answers are produced by the VeriMundi API from linked source evidence only. The Flutter client never stores GenAI secrets.';
+  }
+
   String _remoteReadinessCopy(AsyncValue<AppRemoteConfig?> remoteConfig) {
     if (AppConstants.isMockApi) {
       return 'Mock mode — remote /v1/app/config is not consulted.';
@@ -99,8 +118,9 @@ class SettingsScreen extends ConsumerWidget {
         );
         final ingestion =
             'RSS=${config.enableRss ? 'flagged' : 'off'}; '
-            'GDELT=${config.enableGdelt ? 'flagged' : 'off'} '
-            '(flags only — unapproved sources stay disabled).';
+            'GDELT=${config.enableGdelt ? 'flagged' : 'off'}; '
+            'AI=${config.aiProvider} '
+            '(flags only — restricted/unapproved sources stay disabled; no GenAI secrets on device).';
         if (config.maintenanceMode) {
           return 'Maintenance mode is on. ${config.maintenanceMessage ?? ''} $ingestion';
         }

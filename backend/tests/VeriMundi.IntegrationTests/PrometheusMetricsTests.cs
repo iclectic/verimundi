@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using VeriMundi.Api.Telemetry;
 using VeriMundi.Infrastructure.Ingestion;
 
 namespace VeriMundi.IntegrationTests;
@@ -61,11 +62,20 @@ public class PrometheusMetricsTests
             CompletedAt: now.AddMilliseconds(15),
             Trigger: "test"));
 
+        ApiTelemetry.RecordAsk(insufficientEvidence: false);
+        ApiTelemetry.RecordReportAccepted("Other");
+        ApiTelemetry.RecordRateLimited("ask");
+        ApiTelemetry.RecordHttp("GET", 200, "ops", 12);
+
         var client = factory.CreateClient();
         var response = await client.GetAsync("/metrics");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await response.Content.ReadAsStringAsync();
         body.Should().Contain("verimundi_ingestion_cycles_completed");
         body.Should().Contain("verimundi_ingestion_articles_ingested");
+        body.Should().Contain("verimundi_api_ask_requests");
+        body.Should().Contain("verimundi_api_reports_accepted");
+        body.Should().Contain("verimundi_api_rate_limited");
+        body.Should().Contain("verimundi_api_http_requests");
     }
 }

@@ -1,5 +1,9 @@
 name: Flutter
 
+# APK/AAB builds are intentionally omitted: ubuntu-latest has no Android SDK.
+# See docs/release/android_ci_notes.md and docs/release/android_sdk_blocker.md.
+# Optional self-hosted Android job may be added when ANDROID_HOME is available.
+
 on:
   pull_request:
   push:
@@ -24,3 +28,12 @@ jobs:
         run: flutter analyze
       - name: Test
         run: flutter test
+      - name: Android SDK probe (informational)
+        run: |
+          set +e
+          ./scripts/check_android_sdk.sh
+          status=$?
+          if [ "$status" -ne 0 ]; then
+            echo "Android SDK not available on this runner (expected). Skipping APK/AAB."
+          fi
+          exit 0

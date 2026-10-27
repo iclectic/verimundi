@@ -19,7 +19,10 @@ class CacheStatusBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final (bg, fg) = switch (freshness) {
-      CacheFreshness.expired => (scheme.errorContainer, scheme.onErrorContainer),
+      CacheFreshness.expired => (
+        scheme.errorContainer,
+        scheme.onErrorContainer,
+      ),
       CacheFreshness.staleButUsable => (
         scheme.tertiaryContainer,
         scheme.onTertiaryContainer,
@@ -51,9 +54,9 @@ class CacheStatusBanner extends StatelessWidget {
             Expanded(
               child: Text(
                 label,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: fg,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: fg),
               ),
             ),
           ],

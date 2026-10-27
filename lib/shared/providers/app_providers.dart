@@ -104,8 +104,9 @@ class StoriesFeedState {
   final bool usedSearchEndpoint;
 
   bool get hasMore => page * pageSize < total;
-  int get totalPages =>
-      pageSize <= 0 ? 1 : ((total + pageSize - 1) ~/ pageSize).clamp(1, 1 << 30);
+  int get totalPages => pageSize <= 0
+      ? 1
+      : ((total + pageSize - 1) ~/ pageSize).clamp(1, 1 << 30);
 }
 
 /// Offline-aware list used by underreported / positive screens.
@@ -189,8 +190,9 @@ final storiesProvider = FutureProvider<List<StoryCluster>>((ref) async {
   return feed.stories;
 });
 
-final underreportedStoriesProvider =
-    FutureProvider<CachedStoriesListState>((ref) async {
+final underreportedStoriesProvider = FutureProvider<CachedStoriesListState>((
+  ref,
+) async {
   final repository = ref.watch(newsRepositoryProvider);
   final cache = ref.watch(feedCacheRepositoryProvider);
   final filter = ref.watch(storyFilterProvider);
@@ -244,8 +246,7 @@ final positiveStoriesProvider = FutureProvider<CachedStoriesListState>((
   final savedIds = await ref
       .watch(savedStoriesRepositoryProvider)
       .getSavedStoryIds();
-  final cacheKey =
-      'positive:${AppConstants.isMockApi ? 'mock' : 'remote'}';
+  final cacheKey = 'positive:${AppConstants.isMockApi ? 'mock' : 'remote'}';
 
   try {
     final stories = await repository.getPositiveStories();

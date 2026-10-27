@@ -25,7 +25,9 @@ class CountryDetailPanel extends StatelessWidget {
     final underreported = [...stories]
       ..sort((a, b) => b.underreportedScore.compareTo(a.underreportedScore));
     final positive = stories.where((s) => s.tone == Tone.positive).toList();
-    final updated = DateFormat.yMMMd().add_Hm().format(country.lastUpdated.toLocal());
+    final updated = DateFormat.yMMMd().add_Hm().format(
+      country.lastUpdated.toLocal(),
+    );
 
     return Semantics(
       container: true,

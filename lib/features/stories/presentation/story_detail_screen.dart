@@ -72,9 +72,7 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
         value: story,
         builder: (story) {
           if (story == null) {
-            return const Center(
-              child: Text('Story not found.'),
-            );
+            return const Center(child: Text('Story not found.'));
           }
           final showFullSummary =
               story.fullSummary.trim().isNotEmpty &&
@@ -128,8 +126,7 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
                         const SizedBox(height: 16),
                         Semantics(
                           liveRegion: true,
-                          label:
-                              'Correction notice: ${story.correctionNotice}',
+                          label: 'Correction notice: ${story.correctionNotice}',
                           child: Container(
                             width: double.infinity,
                             padding: const EdgeInsets.all(12),
@@ -165,9 +162,7 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
                             ListTile(
                               contentPadding: EdgeInsets.zero,
                               leading: const Icon(Icons.auto_awesome),
-                              title: const Text(
-                                'Summary generated / updated',
-                              ),
+                              title: const Text('Summary generated / updated'),
                               subtitle: Text(
                                 DateFormatters.compact(story.lastUpdatedAt),
                               ),
@@ -349,12 +344,12 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
                                   trailing: const Icon(Icons.open_in_new),
                                   onTap: () => ScaffoldMessenger.of(context)
                                       .showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        'External source: ${source.articleUrl}',
+                                        SnackBar(
+                                          content: Text(
+                                            'External source: ${source.articleUrl}',
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  ),
                                 ),
                               ),
                           ],
@@ -622,9 +617,7 @@ class _QuestionBox extends StatelessWidget {
                               'Insufficient evidence',
                               style: Theme.of(context).textTheme.labelLarge
                                   ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.error,
+                                    color: Theme.of(context).colorScheme.error,
                                   ),
                             ),
                           ),

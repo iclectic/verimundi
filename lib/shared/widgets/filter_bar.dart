@@ -50,9 +50,7 @@ class _FilterBarState extends ConsumerState<FilterBar> {
       if (!mounted) return;
       final current = ref.read(storyFilterProvider);
       final trimmed = value.trim();
-      _setFilter(
-        current.copyWith(query: trimmed.isEmpty ? null : trimmed),
-      );
+      _setFilter(current.copyWith(query: trimmed.isEmpty ? null : trimmed));
     });
   }
 

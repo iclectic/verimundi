@@ -92,14 +92,8 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Privacy'), findsOneWidget);
-    expect(
-      find.textContaining('stay on this device'),
-      findsOneWidget,
-    );
-    expect(
-      find.textContaining('legal review'),
-      findsOneWidget,
-    );
+    expect(find.textContaining('stay on this device'), findsOneWidget);
+    expect(find.textContaining('legal review'), findsOneWidget);
   });
 
   testWidgets('Saved screen explains the empty saved state', (tester) async {

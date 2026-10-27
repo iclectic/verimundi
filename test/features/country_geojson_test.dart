@@ -51,14 +51,22 @@ void main() {
     expect(collection.features.length, greaterThan(100));
     for (final code in ['NG', 'JP', 'US', 'BR', 'AU', 'GB']) {
       expect(collection.byIso(code), isNotNull, reason: code);
-      expect(collection.byIso(code)!.rings.first.length, greaterThanOrEqualTo(3));
+      expect(
+        collection.byIso(code)!.rings.first.length,
+        greaterThanOrEqualTo(3),
+      );
     }
   });
 
   test('equirectangular projector builds closed paths', () {
     const projector = EquirectangularProjector(Size(360, 180));
     final path = projector.pathForRings([
-      [const Offset(-10, 10), const Offset(10, 10), const Offset(10, -10), const Offset(-10, -10)],
+      [
+        const Offset(-10, 10),
+        const Offset(10, 10),
+        const Offset(10, -10),
+        const Offset(-10, -10),
+      ],
     ]);
     expect(path.getBounds().width, greaterThan(0));
     expect(path.contains(const Offset(180, 90)), isTrue);

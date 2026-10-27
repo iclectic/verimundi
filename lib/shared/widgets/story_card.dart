@@ -54,8 +54,9 @@ class StoryCard extends ConsumerWidget {
                               : Icons.bookmark_border,
                         ),
                         onPressed: () async {
-                          final saved =
-                              ref.read(savedStoriesRepositoryProvider);
+                          final saved = ref.read(
+                            savedStoriesRepositoryProvider,
+                          );
                           if (story.isSaved) {
                             await saved.remove(story.id);
                           } else {
@@ -83,9 +84,7 @@ class StoryCard extends ConsumerWidget {
                     TonePill(tone: story.tone),
                     Semantics(
                       label: 'Verification ${story.verificationStatus.label}',
-                      child: Chip(
-                        label: Text(story.verificationStatus.label),
-                      ),
+                      child: Chip(label: Text(story.verificationStatus.label)),
                     ),
                     Chip(label: Text('${story.sourceCount} sources')),
                     if (story.isDemoContent)

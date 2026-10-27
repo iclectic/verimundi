@@ -55,12 +55,18 @@ class _ChoroplethMapState extends State<ChoroplethMap> {
               maxScale: 6,
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  final size = Size(constraints.maxWidth, constraints.maxHeight);
+                  final size = Size(
+                    constraints.maxWidth,
+                    constraints.maxHeight,
+                  );
                   final projector = EquirectangularProjector(size);
                   return GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTapDown: (details) {
-                      final country = _hitTest(details.localPosition, projector);
+                      final country = _hitTest(
+                        details.localPosition,
+                        projector,
+                      );
                       if (country != null) {
                         widget.onSelect(country);
                       }
@@ -103,7 +109,10 @@ class _ChoroplethMapState extends State<ChoroplethMap> {
     );
   }
 
-  CountryNewsStatus? _hitTest(Offset local, EquirectangularProjector projector) {
+  CountryNewsStatus? _hitTest(
+    Offset local,
+    EquirectangularProjector projector,
+  ) {
     // Prefer countries we have news for, highest severity first among hits.
     final hits = <CountryNewsStatus>[];
     for (final country in widget.countries) {
@@ -119,7 +128,9 @@ class _ChoroplethMapState extends State<ChoroplethMap> {
     if (hits.isEmpty) {
       return null;
     }
-    hits.sort((a, b) => a.currentSeverity.index.compareTo(b.currentSeverity.index));
+    hits.sort(
+      (a, b) => a.currentSeverity.index.compareTo(b.currentSeverity.index),
+    );
     return hits.first;
   }
 }
@@ -200,9 +211,10 @@ class _ChoroplethPainter extends CustomPainter {
       final status = byCode[feature.isoA2];
       final severity = status?.currentSeverity ?? Severity.general;
       final active = status != null && status.activeStoryCount > 0;
-      final fill = AppSemanticColors.severity(severity, brightness).withValues(
-        alpha: active ? 0.42 : 0.12,
-      );
+      final fill = AppSemanticColors.severity(
+        severity,
+        brightness,
+      ).withValues(alpha: active ? 0.42 : 0.12);
       canvas.drawPath(path, Paint()..color = fill);
       _paintHatch(canvas, path, severity, brightness);
       final isSelected = selectedCode == feature.isoA2;
@@ -238,10 +250,17 @@ class _ChoroplethPainter extends CustomPainter {
     canvas.clipPath(path);
     final bounds = path.getBounds();
     final paint = Paint()
-      ..color = AppSemanticColors.severity(severity, brightness).withValues(alpha: 0.55)
+      ..color = AppSemanticColors.severity(
+        severity,
+        brightness,
+      ).withValues(alpha: 0.55)
       ..strokeWidth = severity == Severity.critical ? 1.4 : 1.0
       ..style = PaintingStyle.stroke;
-    for (var x = bounds.left - bounds.height; x < bounds.right + bounds.height; x += spacing) {
+    for (
+      var x = bounds.left - bounds.height;
+      x < bounds.right + bounds.height;
+      x += spacing
+    ) {
       canvas.drawLine(
         Offset(x, bounds.top),
         Offset(x + bounds.height, bounds.bottom),
@@ -250,7 +269,11 @@ class _ChoroplethPainter extends CustomPainter {
     }
     if (severity == Severity.critical) {
       // Cross-hatch for critical.
-      for (var x = bounds.left - bounds.height; x < bounds.right + bounds.height; x += spacing) {
+      for (
+        var x = bounds.left - bounds.height;
+        x < bounds.right + bounds.height;
+        x += spacing
+      ) {
         canvas.drawLine(
           Offset(x, bounds.bottom),
           Offset(x + bounds.height, bounds.top),

@@ -14,34 +14,33 @@ void main() {
     tester,
   ) async {
     final semanticsHandle = tester.ensureSemantics();
-    final story = storyFixture(
-      id: 'detail-1',
-      headline: 'Accessible story headline',
-    ).copyWith(
-      fullSummary: 'A longer full summary that differs from the short one.',
-      rankingReason: 'Ranked for regional balance and severity.',
-      underreportedReason: 'Local outlets outweigh international coverage.',
-      disputedClaims: const [
-        DisputedClaim(
-          text: 'Casualty figures remain contested.',
-          supportingSourceIds: ['a'],
-          disputingSourceIds: ['b'],
-        ),
-      ],
-      correctionNotice: 'Updated after a source correction.',
-      correctedAt: DateTime.utc(2026, 10, 20, 9),
-      verificationStatus: VerificationStatus.corrected,
-      category: StoryCategory.humanRights,
-    );
+    final story =
+        storyFixture(
+          id: 'detail-1',
+          headline: 'Accessible story headline',
+        ).copyWith(
+          fullSummary: 'A longer full summary that differs from the short one.',
+          rankingReason: 'Ranked for regional balance and severity.',
+          underreportedReason: 'Local outlets outweigh international coverage.',
+          disputedClaims: const [
+            DisputedClaim(
+              text: 'Casualty figures remain contested.',
+              supportingSourceIds: ['a'],
+              disputingSourceIds: ['b'],
+            ),
+          ],
+          correctionNotice: 'Updated after a source correction.',
+          correctedAt: DateTime.utc(2026, 10, 20, 9),
+          verificationStatus: VerificationStatus.corrected,
+          category: StoryCategory.humanRights,
+        );
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           storyByIdProvider('detail-1').overrideWith((ref) async => story),
         ],
-        child: const MaterialApp(
-          home: StoryDetailScreen(storyId: 'detail-1'),
-        ),
+        child: const MaterialApp(home: StoryDetailScreen(storyId: 'detail-1')),
       ),
     );
     await tester.pumpAndSettle();

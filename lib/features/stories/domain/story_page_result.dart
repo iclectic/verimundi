@@ -16,5 +16,7 @@ class StoryPageResult {
 
   bool get isEmpty => stories.isEmpty;
   bool get hasMore => page * pageSize < total;
-  int get totalPages => pageSize <= 0 ? 1 : ((total + pageSize - 1) ~/ pageSize).clamp(1, 1 << 30);
+  int get totalPages => pageSize <= 0
+      ? 1
+      : ((total + pageSize - 1) ~/ pageSize).clamp(1, 1 << 30);
 }

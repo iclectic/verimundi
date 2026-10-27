@@ -95,7 +95,8 @@ class SettingsScreen extends ConsumerWidget {
     final path = switch (provider) {
       'openaiCompatible' =>
         'Backend path: OpenAI-compatible GenAI (host secret). ',
-      'heuristic' => 'Backend path: heuristic grounded synthesis (no GenAI key). ',
+      'heuristic' =>
+        'Backend path: heuristic grounded synthesis (no GenAI key). ',
       null => 'Backend AI path unknown until /v1/app/config loads. ',
       _ => 'Backend path: $provider. ',
     };

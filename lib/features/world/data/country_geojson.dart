@@ -53,7 +53,8 @@ class CountryGeoCollection {
 
 /// Loads and parses `assets/geo/countries_110m.geojson` (public-domain Natural Earth).
 class CountryGeoJsonRepository {
-  CountryGeoJsonRepository({AssetBundle? bundle}) : _bundle = bundle ?? rootBundle;
+  CountryGeoJsonRepository({AssetBundle? bundle})
+    : _bundle = bundle ?? rootBundle;
 
   static const assetPath = 'assets/geo/countries_110m.geojson';
 

@@ -164,7 +164,10 @@ void main() {
 
     final repository = RemoteNewsRepository(client: ApiClient(dio: dio));
     expect(
-      () => repository.askQuestion('11111111-1111-1111-1111-111111111111', 'Why?'),
+      () => repository.askQuestion(
+        '11111111-1111-1111-1111-111111111111',
+        'Why?',
+      ),
       throwsA(
         isA<RemoteApiException>()
             .having((e) => e.kind, 'kind', RemoteApiErrorKind.rateLimited)

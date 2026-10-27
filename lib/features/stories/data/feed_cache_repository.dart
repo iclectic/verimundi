@@ -94,10 +94,7 @@ class FeedCacheRepository {
       final stories = raw
           .map((item) => StoryCluster.fromJson(item as Map<String, dynamic>))
           .toList();
-      return _DecodedFeedPayload(
-        stories: stories,
-        total: stories.length,
-      );
+      return _DecodedFeedPayload(stories: stories, total: stories.length);
     }
     if (raw is Map<String, dynamic>) {
       final list = raw['stories'];

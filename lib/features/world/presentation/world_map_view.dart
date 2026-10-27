@@ -165,10 +165,7 @@ class _WorldMapViewState extends ConsumerState<WorldMapView> {
             onFilterFeed: () {
               ref.read(storyFilterProvider.notifier).state = ref
                   .read(storyFilterProvider)
-                  .copyWith(
-                    countryCode: country.code,
-                    region: country.region,
-                  );
+                  .copyWith(countryCode: country.code, region: country.region);
               Navigator.pop(context);
             },
           ),

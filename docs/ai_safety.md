@@ -94,6 +94,6 @@ Configuration (host only — never Flutter):
 - `Ai:ApiKey` or `OPENAI_API_KEY`
 - `Ai:BaseUrl` (default `https://api.openai.com/v1`)
 - `Ai:Model` (default `gpt-4o-mini`)
-- `Ai:AskPerMinutePerIp` (default `10`) — stricter Ask rate limit (`ask_rate_limited`) in addition to the global write limiter
+- `RateLimiting:AskPerMinute` (default `10`; legacy alias `Ai:AskPerMinutePerIp`) — stricter Ask rate limit (`ask_rate_limited`) in addition to the global write limiter
 
 Evaluation fixtures for insufficient-evidence / certainty / disputed-claim expectations live under `backend/tests/VeriMundi.UnitTests/Fixtures/ai_eval_cases.json`.

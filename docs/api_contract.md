@@ -52,9 +52,9 @@ Common codes the Flutter client maps into typed UI states:
 | --- | --- | --- |
 | 503 | `maintenance` | Maintenance (Retry-After respected when present) |
 | 401 | `ops_unauthorized` / `ops_auth_misconfigured` | Admin ingestion gate (ops tooling only; not used by Flutter) |
-| 429 | `rate_limited` | Rate limited (all write endpoints; 30/IP/min; Retry-After ≈ 60s) |
-| 429 | `ask_rate_limited` | Stricter Ask VeriMundi limit (`Ai:AskPerMinutePerIp`, default 10) |
-| 429 | `report_rate_limited` | Stricter problem-report limit (10/IP/min) |
+| 429 | `rate_limited` | Rate limited (all write endpoints; `RateLimiting:WritePerMinute`, default 30/IP/min; Retry-After ≈ 60s) |
+| 429 | `ask_rate_limited` | Stricter Ask VeriMundi limit (`RateLimiting:AskPerMinute`, default 10) |
+| 429 | `report_rate_limited` | Stricter problem-report limit (`RateLimiting:ReportPerMinute`, default 10/IP/min) |
 | 400 | `invalid_reason` / `invalid_details` / `invalid_question` | Report/Ask validation |
 | 404 | `story_not_found` / `country_not_found` | Not found |
 | 4xx | other | Bad request |

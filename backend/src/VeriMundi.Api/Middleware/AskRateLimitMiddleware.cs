@@ -1,8 +1,8 @@
-using System.Collections.Concurrent;
 using Microsoft.Extensions.Options;
 using VeriMundi.Api.Contracts;
+using VeriMundi.Api.Options;
+using VeriMundi.Api.RateLimiting;
 using VeriMundi.Api.Telemetry;
-using VeriMundi.Infrastructure.Ai;
 
 namespace VeriMundi.Api.Middleware;
 
@@ -10,11 +10,11 @@ namespace VeriMundi.Api.Middleware;
 /// Stricter per-IP limit for Ask VeriMundi (<c>POST .../questions</c>) to control GenAI cost/abuse.
 /// Runs in addition to the global write rate limiter.
 /// </summary>
-public sealed class AskRateLimitMiddleware(RequestDelegate next, IOptions<AiOptions> options)
+public sealed class AskRateLimitMiddleware(
+    RequestDelegate next,
+    IRateLimiter rateLimiter,
+    IOptions<RateLimitOptions> options)
 {
-    private static readonly ConcurrentDictionary<string, Counter> Counters = new();
-    private static readonly TimeSpan Window = TimeSpan.FromMinutes(1);
-
     public async Task InvokeAsync(HttpContext context)
     {
         var path = context.Request.Path.Value ?? string.Empty;
@@ -26,28 +26,17 @@ public sealed class AskRateLimitMiddleware(RequestDelegate next, IOptions<AiOpti
             return;
         }
 
-        var limit = Math.Clamp(options.Value.AskPerMinutePerIp, 1, 120);
+        var opts = options.Value;
+        var limit = Math.Clamp(opts.AskPerMinute, 1, 120);
+        var window = TimeSpan.FromSeconds(Math.Clamp(opts.WindowSeconds, 1, 3600));
         var key = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-        var counter = Counters.GetOrAdd(key, _ => new Counter());
-        var limited = false;
-        lock (counter)
-        {
-            var now = DateTimeOffset.UtcNow;
-            if (now - counter.WindowStart > Window)
-            {
-                counter.WindowStart = now;
-                counter.Count = 0;
-            }
-
-            counter.Count++;
-            limited = counter.Count > limit;
-        }
-
-        if (limited)
+        var decision = await rateLimiter.TryAcquireAsync("ask", key, limit, window, context.RequestAborted);
+        if (!decision.IsAllowed)
         {
             ApiTelemetry.RecordRateLimited("ask");
             context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
-            context.Response.Headers.RetryAfter = "60";
+            context.Response.Headers.RetryAfter =
+                (decision.RetryAfterSeconds ?? opts.RetryAfterSeconds).ToString();
             await context.Response.WriteAsJsonAsync(new ApiError(
                 "ask_rate_limited",
                 "Too many Ask VeriMundi requests. Please wait a minute and try again."));
@@ -55,11 +44,5 @@ public sealed class AskRateLimitMiddleware(RequestDelegate next, IOptions<AiOpti
         }
 
         await next(context);
-    }
-
-    private sealed class Counter
-    {
-        public DateTimeOffset WindowStart { get; set; } = DateTimeOffset.UtcNow;
-        public int Count { get; set; }
     }
 }

@@ -4,6 +4,7 @@ using VeriMundi.Api.Contracts;
 using VeriMundi.Api.Endpoints;
 using VeriMundi.Api.Middleware;
 using VeriMundi.Api.Options;
+using VeriMundi.Api.RateLimiting;
 using VeriMundi.Api.Telemetry;
 using VeriMundi.Infrastructure;
 using VeriMundi.Infrastructure.Ingestion;
@@ -21,6 +22,7 @@ builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
 
 builder.Services.Configure<AppOptions>(builder.Configuration.GetSection(AppOptions.SectionName));
 builder.Services.Configure<OpsAuthOptions>(builder.Configuration.GetSection(OpsAuthOptions.SectionName));
+builder.Services.AddVeriMundiRateLimiting(builder.Configuration, builder.Environment);
 builder.Services.AddVeriMundiInfrastructure(builder.Configuration);
 var isTesting = builder.Environment.IsEnvironment("Testing");
 if (!isTesting)

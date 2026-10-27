@@ -1,5 +1,7 @@
-using System.Collections.Concurrent;
+using Microsoft.Extensions.Options;
 using VeriMundi.Api.Contracts;
+using VeriMundi.Api.Options;
+using VeriMundi.Api.RateLimiting;
 using VeriMundi.Api.Telemetry;
 
 namespace VeriMundi.Api.Middleware;
@@ -8,12 +10,11 @@ namespace VeriMundi.Api.Middleware;
 /// Stricter per-IP limit for story problem reports to reduce abuse/spam.
 /// Runs in addition to the global write rate limiter.
 /// </summary>
-public sealed class ReportRateLimitMiddleware(RequestDelegate next)
+public sealed class ReportRateLimitMiddleware(
+    RequestDelegate next,
+    IRateLimiter rateLimiter,
+    IOptions<RateLimitOptions> options)
 {
-    private static readonly ConcurrentDictionary<string, Counter> Counters = new();
-    private static readonly TimeSpan Window = TimeSpan.FromMinutes(1);
-    private const int Limit = 10;
-
     public async Task InvokeAsync(HttpContext context)
     {
         var path = context.Request.Path.Value ?? string.Empty;
@@ -25,27 +26,17 @@ public sealed class ReportRateLimitMiddleware(RequestDelegate next)
             return;
         }
 
+        var opts = options.Value;
+        var limit = Math.Clamp(opts.ReportPerMinute, 1, 120);
+        var window = TimeSpan.FromSeconds(Math.Clamp(opts.WindowSeconds, 1, 3600));
         var key = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-        var counter = Counters.GetOrAdd(key, _ => new Counter());
-        var limited = false;
-        lock (counter)
-        {
-            var now = DateTimeOffset.UtcNow;
-            if (now - counter.WindowStart > Window)
-            {
-                counter.WindowStart = now;
-                counter.Count = 0;
-            }
-
-            counter.Count++;
-            limited = counter.Count > Limit;
-        }
-
-        if (limited)
+        var decision = await rateLimiter.TryAcquireAsync("report", key, limit, window, context.RequestAborted);
+        if (!decision.IsAllowed)
         {
             ApiTelemetry.RecordRateLimited("report");
             context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
-            context.Response.Headers.RetryAfter = "60";
+            context.Response.Headers.RetryAfter =
+                (decision.RetryAfterSeconds ?? opts.RetryAfterSeconds).ToString();
             await context.Response.WriteAsJsonAsync(new ApiError(
                 "report_rate_limited",
                 "Too many problem reports. Please wait a minute and try again."));
@@ -53,11 +44,5 @@ public sealed class ReportRateLimitMiddleware(RequestDelegate next)
         }
 
         await next(context);
-    }
-
-    private sealed class Counter
-    {
-        public DateTimeOffset WindowStart { get; set; } = DateTimeOffset.UtcNow;
-        public int Count { get; set; }
     }
 }

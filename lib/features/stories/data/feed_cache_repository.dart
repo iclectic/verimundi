@@ -46,8 +46,8 @@ class FeedCacheRepository {
       'v': 2,
       'stories': stories.map((s) => s.toJson()).toList(),
       'total': total ?? stories.length,
-      if (page != null) 'page': page,
-      if (pageSize != null) 'pageSize': pageSize,
+      'page': ?page,
+      'pageSize': ?pageSize,
     };
     return _database.upsertFeedCache(
       CachedFeedEntriesCompanion.insert(

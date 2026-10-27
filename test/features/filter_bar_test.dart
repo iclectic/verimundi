@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:verimundi/shared/models/news_models.dart';
 import 'package:verimundi/shared/providers/app_providers.dart';
 import 'package:verimundi/shared/widgets/filter_bar.dart';
 

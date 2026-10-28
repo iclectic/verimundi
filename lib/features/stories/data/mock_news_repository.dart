@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 
 import '../../../shared/models/news_models.dart';
+import '../../story_questions/data/mock_story_question_service.dart';
 import '../domain/news_repository.dart';
 import '../domain/story_page_result.dart';
 import 'story_filtering.dart';
@@ -13,15 +14,47 @@ class MockNewsRepository implements NewsRepository {
     AssetBundle? bundle,
     StoryFiltering filtering = const StoryFiltering(),
     UnderreportedScoringService scoring = const UnderreportedScoringService(),
+    MockStoryQuestionService? questions,
   }) : _bundle = bundle ?? rootBundle,
        _filtering = filtering,
-       _scoring = scoring;
+       _scoring = scoring,
+       _questions = questions ?? MockStoryQuestionService();
 
   final AssetBundle _bundle;
   final StoryFiltering _filtering;
   final UnderreportedScoringService _scoring;
+  final MockStoryQuestionService _questions;
   List<StoryCluster>? _stories;
   List<CountryNewsStatus>? _countries;
+
+  @override
+  bool get submitsRemotely => false;
+
+  @override
+  Future<void> reportStory(
+    String storyId, {
+    required String reason,
+    String? details,
+  }) async {
+    // Demo mode: accept locally; nothing is sent to a server.
+  }
+
+  @override
+  Future<AiStoryAnswer> askQuestion(String storyId, String question) async {
+    final story = await getStoryById(storyId);
+    if (story == null) {
+      return AiStoryAnswer(
+        answer:
+            'VeriMundi does not currently have enough reliable source material to answer that with confidence.',
+        insufficientEvidence: true,
+        confidenceScore: 0,
+        sourceIds: const [],
+        generatedAt: DateTime.now(),
+        uncertainty: 'Story was not found in the demo catalogue.',
+      );
+    }
+    return _questions.askQuestion(story, question);
+  }
 
   @override
   Future<StoryPageResult> getStories(StoryFilter filter) async {

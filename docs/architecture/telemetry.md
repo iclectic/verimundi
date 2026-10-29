@@ -59,7 +59,35 @@ An OTLP NuGet exporter is **not** referenced in this repo currently (moderate ad
 1. Prometheus scrape → Grafana Agent / OTEL Collector prometheus receiver, or
 2. Adding a patched OTLP package later behind `Telemetry:EnableOtlp` once the advisory is cleared.
 
+## Quota dashboards & alerts (ops playbook)
+
+Meters above are the data source. Hosted Grafana/Alertmanager wiring stays **EXTERNAL**; use these PromQL sketches once `Telemetry:EnablePrometheus=true` on Staging/Production and a scraper is attached.
+
+### Suggested panels
+
+| Panel | PromQL (sketch) | Notes |
+| --- | --- | --- |
+| Rate-limit 429s | `sum by (kind) (rate(verimundi_api_rate_limited_total[5m]))` | Tag `kind` = `write` \| `ask` \| `report` |
+| Ask volume | `rate(verimundi_api_ask_requests_total[5m])` | Watch spikes vs baseline |
+| Ask / search latency | `histogram_quantile(0.95, sum by (le, route_group) (rate(verimundi_api_http_duration_ms_bucket{route_group=~"ask\|search"}[5m])))` | Correlate with ingest cycles |
+| Ingestion failures | `rate(verimundi_ingestion_cycles_failed_total[15m])` | Non-zero warrants ops check |
+| Ingestion duration | `histogram_quantile(0.95, sum by (le, trigger) (rate(verimundi_ingestion_duration_ms_bucket[15m])))` | Contends with API when co-located |
+
+Exact counter/histogram suffix names follow the OpenTelemetry Prometheus exporter (`_total`, `_bucket`). Confirm against a live `/metrics` scrape after enabling Prometheus.
+
+### Alert sketches (not shipped as code)
+
+| Alert | Condition (sketch) | Action |
+| --- | --- | --- |
+| Ask/report abuse | `rate(verimundi_api_rate_limited_total{kind=~"ask\|report"}[5m])` sustained above staging baseline | Check edge/WAF; tighten `RateLimiting:*` if needed |
+| Write flood | Same for `kind="write"` | Same |
+| Ingest failing | `increase(verimundi_ingestion_cycles_failed_total[30m]) > 0` | Check provider HTTP / DB; admin metrics |
+| Co-located latency | Ask/search p95 rises while `verimundi_ingestion_duration_ms` is high | Consider `Ingestion:EnableHostedWorker=false` + separate worker (see `backend_decision.md`) |
+
+Staging enablement checklist: set `Telemetry__EnablePrometheus=true`, scrape `/metrics` from the API service only (not public internet), and file dashboard JSON in the ops repo when a Grafana org exists. In-app Redis rate limits remain defence-in-depth; edge alerts on HTTP 429 remain recommended (`docs/editorial/abuse_prevention.md`).
+
 ## Related
 
 - Testing matrix: `docs/architecture/testing.md`
 - Abuse / rate limits: `docs/editorial/abuse_prevention.md`
+- Deploy topology / blast radius: `docs/architecture/backend_decision.md`

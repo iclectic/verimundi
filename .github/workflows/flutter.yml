@@ -28,6 +28,8 @@ jobs:
         run: flutter analyze
       - name: Test
         run: flutter test
+      - name: Integration journeys (mock, flutter-tester)
+        run: flutter test integration_test -d flutter-tester
       - name: Android SDK probe (informational)
         run: |
           set +e

@@ -179,6 +179,8 @@ abstract class StoryFilter with _$StoryFilter {
     bool? hasLocalCoverage,
     DateTime? from,
     DateTime? to,
+    @Default(1) int page,
+    @Default(20) int pageSize,
   }) = _StoryFilter;
 }
 
@@ -203,5 +205,6 @@ abstract class AiStoryAnswer with _$AiStoryAnswer {
     required double confidenceScore,
     required List<String> sourceIds,
     required DateTime generatedAt,
+    String? uncertainty,
   }) = _AiStoryAnswer;
 }

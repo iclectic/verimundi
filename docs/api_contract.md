@@ -12,7 +12,10 @@ Default `NEWS_API_BASE_URL` is `mock` (local demo catalog).
 
 ## Endpoints
 
-- `GET /health`
+- `GET /health` — liveness (process up)
+- `GET /ready` — readiness (Postgres reachable); `503` when DB is down
+- `GET /metrics` — Prometheus scrape (**only** when `Telemetry:EnablePrometheus=true`); ingestion OpenTelemetry meters. Exempt from maintenance mode.
+- `GET /v1/app/config` — remote client config (`maintenanceMode`, `minimumAppVersion`, ingestion flags, disclaimer). Available even during maintenance.
 - `GET /v1/world/status`
 - `GET /v1/regions`
 - `GET /v1/countries`
@@ -25,10 +28,11 @@ Default `NEWS_API_BASE_URL` is `mock` (local demo catalog).
 - `GET /v1/stories/{storyId}/history`
 - `GET /v1/stories/underreported`
 - `GET /v1/stories/positive`
-- `GET /v1/search`
-- `POST /v1/stories/{storyId}/questions`
-- `POST /v1/stories/{storyId}/reports`
-- `POST /v1/admin/ingestion/run` (ops; protect before public deploy)
+- `GET /v1/search` — discovery search (`q` required for text match; also `region`, `countryCode`, `category`, `severity`, `tone`, `verification`, `hasLocalCoverage`, `page`, `pageSize`). Broader than `/v1/stories?query=` (includes why-it-matters, source names, article headlines).
+- `POST /v1/stories/{storyId}/questions` — Ask VeriMundi; body `{ "question": "…" }` (1–500 chars); extra per-IP limit → `ask_rate_limited`
+- `POST /v1/stories/{storyId}/reports` — problem report; body `{ "reason": "<allowlisted>", "details": "…"? }`; details ≤500; free-form reasons rejected (`invalid_reason`); extra per-IP limit → `report_rate_limited`; `202 Accepted` with `{ id, receivedAt, status: "received" }` (logged for ops; details text not written to app logs)
+- `POST /v1/admin/ingestion/run` — ops-only; requires `X-VeriMundi-Ops-Token` or `Authorization: Bearer` matching `Ops:AdminIngestionToken`. Empty token allowed only in Development/Testing (fail closed elsewhere). Returns `401` with `ops_unauthorized` / `ops_auth_misconfigured`. Exempt from maintenance mode so ops can re-ingest while product routes are `503`. Response body is an `IngestionResult` counter object (`articlesIngested`, `duplicatesSkipped`, `durationMs`, `trigger`, …).
+- `GET /v1/admin/ingestion/metrics` — same ops auth; process-local snapshot (`cyclesCompleted`, `cyclesFailed`, `articlesIngestedTotal`, `providerFailuresTotal`, `lastRun`).
 
 List endpoints return:
 
@@ -42,4 +46,32 @@ Errors use:
 { "code": "story_not_found", "message": "Story was not found." }
 ```
 
-OpenAPI/Swagger is enabled for the Development environment on the ASP.NET host.
+Common codes the Flutter client maps into typed UI states:
+
+| HTTP | `code` | Client kind |
+| --- | --- | --- |
+| 503 | `maintenance` | Maintenance (Retry-After respected when present) |
+| 401 | `ops_unauthorized` / `ops_auth_misconfigured` | Admin ingestion gate (ops tooling only; not used by Flutter) |
+| 429 | `rate_limited` | Rate limited (all write endpoints; `RateLimiting:WritePerMinute`, default 30/IP/min; Retry-After ≈ 60s) |
+| 429 | `ask_rate_limited` | Stricter Ask VeriMundi limit (`RateLimiting:AskPerMinute`, default 10) |
+| 429 | `report_rate_limited` | Stricter problem-report limit (`RateLimiting:ReportPerMinute`, default 10/IP/min) |
+| 400 | `invalid_reason` / `invalid_details` / `invalid_question` | Report/Ask validation |
+| 404 | `story_not_found` / `country_not_found` | Not found |
+| 4xx | other | Bad request |
+| 5xx | other | Server error |
+
+Transport failures (timeout / connection) never silently fall back to mock in production.
+
+## OpenAPI contract lock (Phase 3)
+
+- Runtime Swagger UI remains **Development-only** (`http://localhost:5080/swagger`).
+- The machine-readable contract snapshot is committed at `backend/contracts/openapi.v1.json`.
+- CI job **openapi-contract** (and `OpenApiContractTests`) fail when the live Swagger document drifts from that snapshot.
+- Schema-locked product surfaces: `GET /v1/stories`, `GET /v1/search`, `POST /v1/stories/{storyId}/questions`, `GET /v1/app/config` (`PagedResponse_StoryDto`, `QuestionResponse`, `AppConfigDto`, …).
+- **Acknowledging an intentional breaking change:** regenerate and commit the snapshot:
+
+```bash
+cd backend && ./scripts/export-openapi.sh
+```
+
+Flutter remote parsers for stories page, Ask, and app config use schema-checked decoding helpers and `test/fixtures/v1/*.json` contract fixtures.

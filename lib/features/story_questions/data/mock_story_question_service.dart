@@ -18,6 +18,8 @@ class MockStoryQuestionService implements StoryQuestionService {
         confidenceScore: 0.18,
         sourceIds: const [],
         generatedAt: DateTime.now(),
+        uncertainty:
+            'Certainty prompts and unsupported claims are declined by design.',
       );
     }
     return AiStoryAnswer(
@@ -30,6 +32,7 @@ class MockStoryQuestionService implements StoryQuestionService {
           .map((source) => source.id)
           .toList(),
       generatedAt: DateTime.now(),
+      uncertainty: 'Demo answers are fictional and not live reporting.',
     );
   }
 }

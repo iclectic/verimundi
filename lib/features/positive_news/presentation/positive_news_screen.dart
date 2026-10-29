@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../shared/models/news_models.dart';
 import '../../../shared/providers/app_providers.dart';
 import '../../../shared/widgets/async_value_view.dart';
-import '../../../shared/widgets/demo_banner.dart';
+import '../../../shared/widgets/app_status_banners.dart';
+import '../../../shared/widgets/cache_status_banner.dart';
+import '../../../shared/widgets/feed_empty_state.dart';
 import '../../../shared/widgets/story_card.dart';
 
 class PositiveNewsScreen extends ConsumerWidget {
@@ -11,7 +15,7 @@ class PositiveNewsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final stories = ref.watch(positiveStoriesProvider);
+    final feedValue = ref.watch(positiveStoriesProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('Positive World')),
       body: RefreshIndicator(
@@ -19,24 +23,52 @@ class PositiveNewsScreen extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.only(bottom: 24),
           children: [
-            const DemoBanner(),
+            const AppStatusBanners(),
             Padding(
               padding: const EdgeInsets.all(16),
               child: AsyncValueView(
-                value: stories,
-                builder: (items) => Column(
-                  children: [
-                    for (final story in items)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: StoryCard(
-                          story: story,
-                          contextNote:
-                              'Positive impact score ${story.positiveImpactScore.toStringAsFixed(0)} with confidence ${(story.confidenceScore * 100).toStringAsFixed(0)}%. This describes a constructive development without claiming the issue is solved.',
-                        ),
-                      ),
-                  ],
+                value: feedValue,
+                empty: FeedEmptyState(
+                  reason: FeedEmptyReason.noClusters,
+                  mode: FeedMode.positiveWorld,
+                  onSwitchToWorldPulse: () {
+                    ref.read(feedModeProvider.notifier).state =
+                        FeedMode.worldPulse;
+                    context.go('/');
+                  },
                 ),
+                builder: (feed) {
+                  if (feed.stories.isEmpty) {
+                    return FeedEmptyState(
+                      reason: FeedEmptyReason.noClusters,
+                      mode: FeedMode.positiveWorld,
+                      onSwitchToWorldPulse: () {
+                        ref.read(feedModeProvider.notifier).state =
+                            FeedMode.worldPulse;
+                        context.go('/');
+                      },
+                    );
+                  }
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (feed.fromCache)
+                        CacheStatusBanner(
+                          label: feed.cacheLabel,
+                          freshness: feed.freshness,
+                        ),
+                      for (final story in feed.stories)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: StoryCard(
+                            story: story,
+                            contextNote:
+                                'Positive impact score ${story.positiveImpactScore.toStringAsFixed(0)} with confidence ${(story.confidenceScore * 100).toStringAsFixed(0)}%. This describes a constructive development without claiming the issue is solved.',
+                          ),
+                        ),
+                    ],
+                  );
+                },
               ),
             ),
           ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../models/news_labels.dart';
 import '../models/news_models.dart';
 
 class SeverityPill extends StatelessWidget {
@@ -16,10 +17,10 @@ class SeverityPill extends StatelessWidget {
       Theme.of(context).brightness,
     );
     return Semantics(
-      label: 'Severity ${severity.name}. $reason',
+      label: 'Severity ${severity.label}. $reason',
       child: Chip(
         avatar: Icon(_icon, size: 18, color: color),
-        label: Text(severity.name),
+        label: Text(severity.label),
         side: BorderSide(color: color),
       ),
     );
@@ -41,13 +42,16 @@ class TonePill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = AppSemanticColors.tone(tone, Theme.of(context).brightness);
-    return Chip(
-      avatar: Icon(
-        tone == Tone.positive ? Icons.volunteer_activism : Icons.tonality,
-        size: 18,
+    return Semantics(
+      label: 'Tone ${tone.label}',
+      child: Chip(
+        avatar: Icon(
+          tone == Tone.positive ? Icons.volunteer_activism : Icons.tonality,
+          size: 18,
+        ),
+        label: Text(tone.label),
+        side: BorderSide(color: color),
       ),
-      label: Text(tone.name),
-      side: BorderSide(color: color),
     );
   }
 }

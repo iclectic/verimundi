@@ -1,0 +1,14 @@
+{
+  "environment": "Testing",
+  "maintenanceMode": false,
+  "maintenanceMessage": null,
+  "minimumAppVersion": "1.0.0",
+  "ingestion": {
+    "enableRss": false,
+    "enableGdelt": false
+  },
+  "ai": {
+    "provider": "heuristic"
+  },
+  "disclaimer": "VeriMundi is designed to broaden regional and source visibility. Story selection, classification and AI-generated summaries remain imperfect and should be considered alongside the original reporting."
+}

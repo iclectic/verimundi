@@ -10,12 +10,17 @@ void main() {
     () async {
       final repository = MockNewsRepository();
       final countries = await repository.getCountryStatuses();
-      final stories = await repository.getStories(const StoryFilter());
+      final page = await repository.getStories(const StoryFilter());
 
       expect(countries, hasLength(20));
-      expect(stories, hasLength(30));
-      expect(stories.every((story) => story.isDemoContent), isTrue);
-      expect(stories.every((story) => story.sourceArticles.isNotEmpty), isTrue);
+      expect(page.stories, hasLength(20));
+      expect(page.total, 30);
+      expect(page.hasMore, isTrue);
+      expect(page.stories.every((story) => story.isDemoContent), isTrue);
+      expect(
+        page.stories.every((story) => story.sourceArticles.isNotEmpty),
+        isTrue,
+      );
     },
   );
 

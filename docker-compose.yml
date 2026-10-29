@@ -1,0 +1,62 @@
+# Local VeriMundi stack for live-path development.
+# Fixtures ingest on API startup. RSS/GDELT flags on for local live path;
+# only approved registry rows are fetched (see docs/sources/source_registry.md).
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: verimundi
+      POSTGRES_USER: verimundi
+      POSTGRES_PASSWORD: verimundi
+    ports:
+      - '5432:5432'
+    volumes:
+      - verimundi_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U verimundi -d verimundi']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Optional shared rate-limit store for multi-replica experiments.
+  # Development defaults to in-memory RateLimiting:Provider=Memory.
+  # Staging/Production: set RateLimiting__Provider=Redis and ConnectionStrings__Redis.
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6379:6379'
+    profiles:
+      - redis
+
+  api:
+    image: mcr.microsoft.com/dotnet/sdk:8.0
+    working_dir: /src
+    volumes:
+      - ./backend:/src
+    command: >
+      bash -lc "dotnet restore VeriMundi.sln &&
+      dotnet run --project src/VeriMundi.Api --urls http://0.0.0.0:5080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__VeriMundi: Host=db;Port=5432;Database=verimundi;Username=verimundi;Password=verimundi
+      Ingestion__EnableRss: 'true'
+      Ingestion__EnableGdelt: 'true'
+      Ingestion__GdeltQuery: sourcelang:english
+      App__MaintenanceMode: 'false'
+      App__MinimumAppVersion: '1.0.0'
+      RateLimiting__Provider: Memory
+      # Leave empty for local Development (open). Set a secret for non-dev hosts.
+      Ops__AdminIngestionToken: ''
+      # Optional Prometheus scrape at /metrics (off by default).
+      Telemetry__EnablePrometheus: 'false'
+      # Optional GenAI — leave unset for heuristic. Never commit real keys.
+      # Ai__ApiKey: ''
+      # OPENAI_API_KEY: ''
+    ports:
+      - '5080:5080'
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  verimundi_pg:

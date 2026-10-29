@@ -292,7 +292,7 @@ public static class GroundedAiValidator
     private static bool ContainsWholeWord(string text, string word)
     {
         var parts = text.Split(
-            [' ', '\t', '\r', '\n', ',', '.', '?', '!', ';', ':'],
+            new[] { ' ', '\t', '\r', '\n', ',', '.', '?', '!', ';', ':' },
             StringSplitOptions.RemoveEmptyEntries);
         return parts.Any(p => p.Equals(word, StringComparison.OrdinalIgnoreCase));
     }

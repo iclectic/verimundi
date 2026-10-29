@@ -15,11 +15,16 @@ using VeriMundi.Workers;
 var builder = WebApplication.CreateBuilder(args);
 builder.AddVeriMundiTelemetry();
 
-var fixturePath = Path.Combine(builder.Environment.ContentRootPath, "Fixtures", "seed_articles.json");
-builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+// Default fixture path for local/dev; do not clobber an explicit Ingestion:FixturePath
+// (integration tests pin this to the Api output Fixtures copy).
+if (string.IsNullOrWhiteSpace(builder.Configuration["Ingestion:FixturePath"]))
 {
-    ["Ingestion:FixturePath"] = fixturePath
-});
+    var fixturePath = Path.Combine(builder.Environment.ContentRootPath, "Fixtures", "seed_articles.json");
+    builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+    {
+        ["Ingestion:FixturePath"] = fixturePath
+    });
+}
 
 builder.Services.Configure<AppOptions>(builder.Configuration.GetSection(AppOptions.SectionName));
 builder.Services.Configure<OpsAuthOptions>(builder.Configuration.GetSection(OpsAuthOptions.SectionName));

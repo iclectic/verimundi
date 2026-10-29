@@ -17,6 +17,9 @@ class RemoteNewsRepository implements NewsRepository {
   Dio get _dio => _client.dio;
 
   @override
+  bool get submitsRemotely => true;
+
+  @override
   Future<StoryPageResult> getStories(StoryFilter filter) async {
     final hasQuery = filter.query != null && filter.query!.trim().isNotEmpty;
     // Phase 9: text discovery hits `/v1/search` (broader match). Browse uses `/v1/stories`.
@@ -70,6 +73,7 @@ class RemoteNewsRepository implements NewsRepository {
     return _parseStoryList(response.data);
   }
 
+  @override
   Future<void> reportStory(
     String storyId, {
     required String reason,
@@ -109,6 +113,7 @@ class RemoteNewsRepository implements NewsRepository {
     }
   }
 
+  @override
   Future<AiStoryAnswer> askQuestion(String storyId, String question) async {
     final trimmed = question.trim();
     if (trimmed.isEmpty || trimmed.length > 500) {

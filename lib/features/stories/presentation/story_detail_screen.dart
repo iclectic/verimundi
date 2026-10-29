@@ -10,7 +10,6 @@ import '../../../shared/providers/app_providers.dart';
 import '../../../shared/widgets/async_value_view.dart';
 import '../../../shared/widgets/app_status_banners.dart';
 import '../../../shared/widgets/status_pill.dart';
-import '../data/remote_news_repository.dart';
 
 class StoryDetailScreen extends ConsumerStatefulWidget {
   const StoryDetailScreen({required this.storyId, super.key});
@@ -387,7 +386,8 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
     final reasons = ReportReasons.all;
     var selected = reasons.first;
     final notes = TextEditingController();
-    final isRemote = ref.read(newsRepositoryProvider) is RemoteNewsRepository;
+    final interaction = ref.read(storyInteractionProvider);
+    final submitsRemotely = interaction.submitsRemotely;
     final submitted = await showDialog<bool>(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -399,7 +399,7 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  isRemote
+                  submitsRemotely
                       ? 'Your reason and optional details are sent to the VeriMundi API for editorial follow-up. Do not include names, contact details, or other personal data you do not wish to share.'
                       : 'Demo mode: this report stays on your device for this session and is not sent to a server. Do not include personal data.',
                   style: Theme.of(context).textTheme.bodySmall,
@@ -447,11 +447,10 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
     final detailText = notes.text.trim();
     notes.dispose();
     if (submitted == true && context.mounted) {
-      final repository = ref.read(newsRepositoryProvider);
       late final String reportMessage;
-      if (repository is RemoteNewsRepository) {
+      if (submitsRemotely) {
         try {
-          await repository.reportStory(
+          await interaction.reportStory(
             widget.storyId,
             reason: selected,
             details: detailText,
@@ -460,11 +459,13 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
               'Thank you. Your report was received for editorial follow-up.';
         } on RemoteApiException catch (error) {
           reportMessage = '${error.title}: ${error.message}';
-        } catch (_) {
-          reportMessage =
-              'Could not reach the server. Your note was not submitted — try again later.';
         }
       } else {
+        await interaction.reportStory(
+          widget.storyId,
+          reason: selected,
+          details: detailText,
+        );
         reportMessage =
             'Demo mode: report noted locally only (not submitted to a server).';
       }

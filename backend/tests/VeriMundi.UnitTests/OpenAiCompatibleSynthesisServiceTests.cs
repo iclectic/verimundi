@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using System.Text;
 using FluentAssertions;
@@ -52,14 +53,58 @@ public class OpenAiCompatibleSynthesisServiceTests
         result.SourceIds.Should().Contain("src-a");
     }
 
-    private static OpenAiCompatibleSynthesisService CreateService(StubHandler handler)
+    /// <summary>
+    /// Phase 7 latency/timeout guard: Ai HttpClient timeout must bound Ask rather than hang.
+    /// Mirrors production wiring (named "ai" client TimeoutSeconds → HttpClient.Timeout).
+    /// </summary>
+    [Fact]
+    public async Task Ask_falls_back_within_budget_when_provider_exceeds_client_timeout()
     {
-        var factory = new StubHttpClientFactory(handler);
+        var handler = new SlowHandler(TimeSpan.FromSeconds(30));
+        var service = CreateService(handler, clientTimeout: TimeSpan.FromSeconds(1));
+        var evidence = new AiSourceEvidence(Guid.NewGuid(), "src-a", "Local", "Clinic", "Hours expand", "local");
+
+        var sw = Stopwatch.StartNew();
+        var result = await service.AnswerQuestionAsync(new AiQuestionRequest(
+            Guid.NewGuid(),
+            "Why does this matter?",
+            "Clinic expands hours",
+            "Hours expand next month.",
+            [evidence],
+            [],
+            []));
+        sw.Stop();
+
+        sw.Elapsed.Should().BeLessThan(
+            TimeSpan.FromSeconds(5),
+            "Ask must honour Ai client timeout instead of waiting on a hung provider");
+        result.InsufficientEvidence.Should().BeFalse();
+        result.Uncertainty.Should().Contain("GenAI provider unavailable");
+        result.SourceIds.Should().Contain("src-a");
+    }
+
+    [Fact]
+    public void AiOptions_timeout_defaults_and_clamp_bounds_match_di()
+    {
+        // Documented contract with DependencyInjection "ai" client (clamp 5–120).
+        var opts = new AiOptions();
+        opts.TimeoutSeconds.Should().Be(45);
+        Math.Clamp(1, 5, 120).Should().Be(5);
+        Math.Clamp(200, 5, 120).Should().Be(120);
+        Math.Clamp(opts.TimeoutSeconds, 5, 120).Should().Be(45);
+    }
+
+    private static OpenAiCompatibleSynthesisService CreateService(
+        HttpMessageHandler handler,
+        TimeSpan? clientTimeout = null)
+    {
+        var factory = new StubHttpClientFactory(handler, clientTimeout);
         var opts = Options.Create(new AiOptions
         {
             ApiKey = "test-key",
             BaseUrl = "https://example.test/v1",
-            Model = "test-model"
+            Model = "test-model",
+            TimeoutSeconds = clientTimeout is null ? 45 : (int)Math.Clamp(clientTimeout.Value.TotalSeconds, 5, 120)
         });
         return new OpenAiCompatibleSynthesisService(
             factory,
@@ -68,13 +113,16 @@ public class OpenAiCompatibleSynthesisServiceTests
             NullLogger<OpenAiCompatibleSynthesisService>.Instance);
     }
 
-    private sealed class StubHttpClientFactory(StubHandler handler) : IHttpClientFactory
+    private sealed class StubHttpClientFactory(
+        HttpMessageHandler handler,
+        TimeSpan? timeout = null) : IHttpClientFactory
     {
         public HttpClient CreateClient(string name)
         {
             var client = new HttpClient(handler)
             {
-                BaseAddress = new Uri("https://example.test/v1/", UriKind.Absolute)
+                BaseAddress = new Uri("https://example.test/v1/", UriKind.Absolute),
+                Timeout = timeout ?? TimeSpan.FromSeconds(100)
             };
             return client;
         }
@@ -96,6 +144,20 @@ public class OpenAiCompatibleSynthesisServiceTests
                 Content = new StringContent(body, Encoding.UTF8, "application/json")
             };
             return Task.FromResult(response);
+        }
+    }
+
+    private sealed class SlowHandler(TimeSpan delay) : HttpMessageHandler
+    {
+        protected override async Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            await Task.Delay(delay, cancellationToken);
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("{}", Encoding.UTF8, "application/json")
+            };
         }
     }
 }

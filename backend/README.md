@@ -32,6 +32,19 @@ Development enables RSS + GDELT flags; production `appsettings.json` keeps both 
 Only **approved + enabled** registry rows are ingested (UN News RSS today; GDELT MetadataOnly discovery).
 ReliefWeb / WHO stay **restricted**. See `docs/sources/source_registry.md`.
 
+### Deploy topology (ingestion blast radius)
+
+Default: **one API process** hosts HTTP and the 15-minute `IngestionHostedService` loop (`VeriMundi.Workers` is a library, not a separate container). Compose = `db` + `api`.
+
+| Concern | Guidance |
+| --- | --- |
+| Shared process | Heavy ingest can contend with Ask/search latency |
+| Multi-replica | Each API replica would run its own loop — enable hosted ingestion on **one** owner only |
+| Disable periodic loop | `Ingestion__EnableHostedWorker=false` (startup cycle + admin `POST /v1/admin/ingestion/run` remain) |
+| Future split | Run a worker host that references Workers + Infrastructure; keep the flag false on API replicas |
+
+Full limits and evolution notes: `docs/architecture/backend_decision.md` → **Deploy topology**.
+
 ## Tests
 
 ```bash
@@ -82,6 +95,8 @@ Staging / remote honesty checklist (no secrets in git):
 | `Ingestion:EnableGdelt` | Enable GDELT DOC 2.0 ArtList discovery (`true`/`false`; MetadataOnly — publisher rights still apply) |
 | `Ingestion:GdeltQuery` | Optional GDELT DOC query (default `sourcelang:english`) |
 | `Ingestion:FixturePath` | Override fixture JSON path |
+| `Ingestion:EnableHostedWorker` | Register in-API `IngestionHostedService` (`true` default; `false` to stop periodic hosted cycles — Testing never registers) |
+| `Ai:TimeoutSeconds` | GenAI HTTP client timeout (default `45`, clamped 5–120). Ask falls back to heuristic if the provider exceeds it |
 | `Ai:ApiKey` / `OPENAI_API_KEY` | Optional OpenAI-compatible key (env only). Empty → heuristic synthesis/Ask |
 | `Ai:BaseUrl` | OpenAI-compatible base (default `https://api.openai.com/v1`) |
 | `Ai:Model` | Chat model id (default `gpt-4o-mini`) |

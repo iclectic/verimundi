@@ -36,7 +36,12 @@ builder.Services.Configure<OpsAuthOptions>(builder.Configuration.GetSection(OpsA
 builder.Services.AddVeriMundiRateLimiting(builder.Configuration, builder.Environment);
 builder.Services.AddVeriMundiInfrastructure(builder.Configuration);
 var isTesting = builder.Environment.IsEnvironment("Testing");
-if (!isTesting)
+// Default: hosted ingestion in-process. Set Ingestion:EnableHostedWorker=false when a
+// separate worker owns the loop (see docs/architecture/backend_decision.md).
+var hostedWorkerExplicit = builder.Configuration["Ingestion:EnableHostedWorker"];
+var enableHostedWorker = !isTesting &&
+    !string.Equals(hostedWorkerExplicit, "false", StringComparison.OrdinalIgnoreCase);
+if (enableHostedWorker)
 {
     builder.Services.AddHostedService<IngestionHostedService>();
 }

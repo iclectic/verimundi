@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -61,6 +62,35 @@ public sealed class PostgresDataPlaneTests
         page.Items.Should().Contain(s =>
             s.Headline.Contains("Lagos", StringComparison.OrdinalIgnoreCase) ||
             s.Headline.Contains("ferry", StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
+    /// Phase 7 lightweight search latency budget (fixture-sized corpus).
+    /// Not a statistical p95; catches pathological regressions in CI.
+    /// </summary>
+    [Fact]
+    public async Task Search_completes_within_latency_budget()
+    {
+        // Warm one request so EF/model compile cost does not dominate the budget.
+        (await _fixture.Client.GetAsync("/v1/search?q=Lagos&page=1&pageSize=10"))
+            .EnsureSuccessStatusCode();
+
+        var samples = new List<long>(5);
+        for (var i = 0; i < 5; i++)
+        {
+            var sw = Stopwatch.StartNew();
+            var response = await _fixture.Client.GetAsync("/v1/search?q=Lagos&page=1&pageSize=10");
+            sw.Stop();
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            samples.Add(sw.ElapsedMilliseconds);
+        }
+
+        samples.Max().Should().BeLessThan(
+            1500,
+            "fixture search should stay under 1.5s wall clock (Phase 7 budget)");
+        samples.OrderBy(x => x).ElementAt(samples.Count / 2).Should().BeLessThan(
+            800,
+            "median fixture search should stay under 800ms");
     }
 
     [Fact]

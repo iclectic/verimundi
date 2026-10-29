@@ -90,11 +90,14 @@ Staging / remote honesty checklist (no secrets in git):
 | `RateLimiting:WritePerMinute` | Global write (POST/PUT/DELETE) limit per IP (default `30`) |
 | `RateLimiting:AskPerMinute` | Ask VeriMundi limit per IP (default `10`) |
 | `RateLimiting:ReportPerMinute` | Problem-report limit per IP (default `10`) |
+| `RateLimiting:WindowSeconds` | Fixed window length in seconds (default `60`) |
+| `RateLimiting:RetryAfterSeconds` | `Retry-After` header when limited (default `60`) |
 | `RateLimiting:RedisConnection` / `ConnectionStrings:Redis` | Required when Provider is Redis (multi-replica shared quotas) |
+| `Cors:AllowedOrigins` | Staging/Production browser origin allowlist (required; no `*`). Env: `Cors__AllowedOrigins__0=https://…` |
 | `App:MaintenanceMode` | When `true`, product routes return `503`; health/ready/config/**admin** remain up |
 | `App:MinimumAppVersion` | SemVer floor advertised to Flutter via `/v1/app/config` |
 | `App:MaintenanceMessage` | Message returned during maintenance |
-| `Ops:AdminIngestionToken` | Shared secret for `POST /v1/admin/ingestion/run`. Empty is allowed only in Development/Testing; Production/Staging fail closed until set |
+| `Ops:AdminIngestionToken` | Shared secret for admin ingestion/metrics. Empty allowed only in Development/Testing; Staging/Production **refuse to start** until set |
 
 ### Admin ingestion
 
@@ -132,6 +135,24 @@ OTLP exporter packages are not bundled here (known advisory on older OTLP packag
 Never commit real ops tokens. Do not put them in Flutter.
 
 No news or GenAI secrets belong in the Flutter client.
+
+### CORS (Staging / Production)
+
+Development and Testing keep permissive CORS (`AllowAnyOrigin`) for local DX.  
+Staging and Production **must** set an explicit allowlist and **cannot** boot with empty origins or wildcards (`*`):
+
+```bash
+export ASPNETCORE_ENVIRONMENT=Production
+export Ops__AdminIngestionToken='…local secret…'
+export Cors__AllowedOrigins__0='https://app.example.com'
+# optional additional origins:
+# export Cors__AllowedOrigins__1='https://admin.example.com'
+# Rate limiting defaults to Redis in Production — set a connection or override:
+export RateLimiting__Provider=Memory   # single-instance only
+# export RateLimiting__RedisConnection='…'
+```
+
+There is no supported override to re-enable `AllowAnyOrigin` in Staging/Production.
 
 ### Optional grounded GenAI
 

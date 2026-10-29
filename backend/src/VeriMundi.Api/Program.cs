@@ -1,11 +1,13 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using VeriMundi.Api.Contracts;
+using VeriMundi.Api.Cors;
 using VeriMundi.Api.Endpoints;
 using VeriMundi.Api.Middleware;
 using VeriMundi.Api.OpenApi;
 using VeriMundi.Api.Options;
 using VeriMundi.Api.RateLimiting;
+using VeriMundi.Api.Security;
 using VeriMundi.Api.Telemetry;
 using VeriMundi.Infrastructure;
 using VeriMundi.Infrastructure.Ingestion;
@@ -26,6 +28,9 @@ if (string.IsNullOrWhiteSpace(builder.Configuration["Ingestion:FixturePath"]))
     });
 }
 
+// Staging/Production: refuse empty ops token and wildcard/empty CORS before serving.
+ProductionStartupGuards.Validate(builder.Configuration, builder.Environment);
+
 builder.Services.Configure<AppOptions>(builder.Configuration.GetSection(AppOptions.SectionName));
 builder.Services.Configure<OpsAuthOptions>(builder.Configuration.GetSection(OpsAuthOptions.SectionName));
 builder.Services.AddVeriMundiRateLimiting(builder.Configuration, builder.Environment);
@@ -41,11 +46,7 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
 });
-builder.Services.AddCors(options =>
-{
-    options.AddDefaultPolicy(policy =>
-        policy.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
-});
+builder.Services.AddVeriMundiCors(builder.Configuration, builder.Environment);
 
 var app = builder.Build();
 app.MapVeriMundiTelemetry();

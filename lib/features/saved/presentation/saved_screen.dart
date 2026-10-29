@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/utils/date_formatters.dart';
+import '../../../shared/models/news_labels.dart';
 import '../../../shared/providers/app_providers.dart';
 import '../../../shared/widgets/async_value_view.dart';
 import '../../../shared/widgets/app_status_banners.dart';
@@ -30,8 +31,8 @@ class SavedScreen extends ConsumerWidget {
                       child: ListTile(
                         title: Text(item.headlineSnapshot),
                         subtitle: Text(
-                          '${item.country} • ${item.verificationStatus.name} • ${item.lastKnownSourceCount} sources • saved ${DateFormatters.relative(item.savedAt)}\n'
-                          'Saved snapshot may be older than the current server version.',
+                          '${item.country} • ${item.verificationStatus.label} • ${item.lastKnownSourceCount} sources • saved ${DateFormatters.relative(item.savedAt)}\n'
+                          'Local snapshot only (saved ${DateFormatters.relative(item.savedAt)}) — not a live story; may differ from the server.',
                         ),
                         isThreeLine: true,
                         trailing: IconButton(

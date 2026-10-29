@@ -25,34 +25,52 @@ public static class SeedData
 
         if (!await db.Sources.AnyAsync(cancellationToken))
         {
-            db.Sources.AddRange(Sources());
+            db.Sources.AddRange(CuratedSources());
             await db.SaveChangesAsync(cancellationToken);
         }
         else
         {
-            // Idempotent proposals for existing DBs — never auto-enable.
-            await EnsureProposedSourcesAsync(db, cancellationToken);
+            // Sync curated registry rows (approvals / restrictions) to match source_registry.md.
+            // Never auto-approves unknown domains discovered at ingest time.
+            await SyncCuratedSourcesAsync(db, cancellationToken);
         }
     }
 
-    /// Adds missing proposed registry rows without enabling them or changing approvals.
-    private static async Task EnsureProposedSourcesAsync(
+    /// <summary>
+    /// Curated registry catalog used by seeds and unit tests. Must stay aligned with
+    /// <c>docs/sources/source_registry.md</c>.
+    /// </summary>
+    public static IReadOnlyList<Source> CuratedSources() => Sources().ToList();
+
+    /// Upserts curated domains from <see cref="CuratedSources"/>. Does not touch
+    /// auto-proposed unknown domains created by ingestion.
+    private static async Task SyncCuratedSourcesAsync(
         VeriMundiDbContext db,
         CancellationToken cancellationToken)
     {
-        var proposed = Sources()
-            .Where(s => s.LicenceStatus == LicenceStatus.Proposed)
-            .ToList();
-        foreach (var candidate in proposed)
+        foreach (var candidate in CuratedSources())
         {
-            var exists = await db.Sources.AnyAsync(
+            var existing = await db.Sources.FirstOrDefaultAsync(
                 s => s.CanonicalDomain == candidate.CanonicalDomain,
                 cancellationToken);
-            if (!exists)
+            if (existing is null)
             {
-                candidate.Enabled = false;
                 db.Sources.Add(candidate);
+                continue;
             }
+
+            existing.Name = candidate.Name;
+            existing.CountryCode = candidate.CountryCode;
+            existing.Region = candidate.Region;
+            existing.PrimaryLanguage = candidate.PrimaryLanguage;
+            existing.SourceType = candidate.SourceType;
+            existing.LicenceStatus = candidate.LicenceStatus;
+            existing.ContentUsageStatus = candidate.ContentUsageStatus;
+            existing.AttributionRequirements = candidate.AttributionRequirements;
+            existing.Enabled = candidate.Enabled;
+            existing.WebsiteUrl = candidate.WebsiteUrl;
+            existing.FeedUrl = candidate.FeedUrl;
+            existing.UpdatedAt = DateTimeOffset.UtcNow;
         }
 
         if (db.ChangeTracker.HasChanges())
@@ -186,7 +204,7 @@ public static class SeedData
             ContentUsageStatus = ContentUsageStatus.HeadlineAndLink,
             Enabled = true
         },
-        // Proposed only — never Enabled until Tubo/legal approve in source_registry.md.
+        // Still unreviewed — keep proposed + disabled.
         new()
         {
             Name = "Example Commercial Outlet (proposed)",
@@ -198,63 +216,87 @@ public static class SeedData
             Enabled = false,
             FeedUrl = "https://example-news.example/rss"
         },
+        // Approved: UN News invites reuse with attribution + link-back; advise UN on enablement.
+        // Terms: https://news.un.org/en/content/navigate-news and
+        // https://www.un.org/en/about-us/copyright/ (news-related material with credit).
         new()
         {
-            Name = "UN News (proposed RSS)",
+            Name = "UN News",
             CanonicalDomain = "news.un.org",
             CountryCode = null,
             Region = null,
             PrimaryLanguage = "en",
             SourceType = SourceType.Wire,
-            LicenceStatus = LicenceStatus.Proposed,
-            ContentUsageStatus = ContentUsageStatus.HeadlineAndLink,
-            AttributionRequirements = "Confirm current UN News reuse / attribution terms before enablement",
-            Enabled = false,
+            LicenceStatus = LicenceStatus.Approved,
+            ContentUsageStatus = ContentUsageStatus.PermittedExcerpt,
+            AttributionRequirements =
+                "Attribute UN News; link back to the story on news.un.org; no photos/graphics/audio/video " +
+                "without separate clearance. Advise the United Nations when enabling production " +
+                "(unnews@un.org). Terms: https://news.un.org/en/content/navigate-news ; " +
+                "https://www.un.org/en/about-us/copyright/",
+            Enabled = true,
             WebsiteUrl = "https://news.un.org",
             FeedUrl = "https://news.un.org/feed/subscribe/en/news/all/rss.xml"
         },
+        // Restricted: ReliefWeb site T&Cs limit Materials to personal non-commercial use and
+        // disallow redistribute/derivative compilation without further clearance; partner IP applies.
+        // https://reliefweb.int/terms-conditions — do not enable for VeriMundi product aggregation.
         new()
         {
-            Name = "ReliefWeb headlines (proposed)",
+            Name = "ReliefWeb updates (restricted)",
             CanonicalDomain = "reliefweb.int",
             CountryCode = null,
             Region = null,
             PrimaryLanguage = "en",
             SourceType = SourceType.Specialist,
-            LicenceStatus = LicenceStatus.Proposed,
-            ContentUsageStatus = ContentUsageStatus.HeadlineAndLink,
-            AttributionRequirements = "Confirm ReliefWeb API/terms for headline+link caching",
+            LicenceStatus = LicenceStatus.Restricted,
+            ContentUsageStatus = ContentUsageStatus.MetadataOnly,
+            AttributionRequirements =
+                "Blocked for product aggregation: ReliefWeb T&Cs grant personal non-commercial copy only, " +
+                "no redistribute/derivative works; partner copyrights apply. Revisit only with written " +
+                "OCHA/ReliefWeb clearance. https://reliefweb.int/terms-conditions",
             Enabled = false,
             WebsiteUrl = "https://reliefweb.int",
             FeedUrl = "https://reliefweb.int/updates/rss.xml"
         },
+        // Restricted: WHO website copyright forbids commercial use without prior written authorisation.
+        // https://www.who.int/about/policies/terms-of-use
         new()
         {
-            Name = "WHO newsroom (proposed RSS)",
+            Name = "WHO newsroom (restricted)",
             CanonicalDomain = "who.int",
             CountryCode = null,
             Region = null,
             PrimaryLanguage = "en",
             SourceType = SourceType.Specialist,
-            LicenceStatus = LicenceStatus.Proposed,
-            ContentUsageStatus = ContentUsageStatus.HeadlineAndLink,
-            AttributionRequirements = "Confirm WHO newsroom terms before enablement",
+            LicenceStatus = LicenceStatus.Restricted,
+            ContentUsageStatus = ContentUsageStatus.MetadataOnly,
+            AttributionRequirements =
+                "Blocked pending written WHO authorisation for non-research/commercial product use. " +
+                "WHO terms: extracts for research/private study only; commercial use needs prior written " +
+                "permission. https://www.who.int/about/policies/terms-of-use",
             Enabled = false,
             WebsiteUrl = "https://www.who.int",
             FeedUrl = "https://www.who.int/rss-feeds/news-english.xml"
         },
+        // Approved MetadataOnly: GDELT Project datasets allow commercial use with citation;
+        // does NOT licence underlying publisher article text/headlines/images.
+        // https://www.gdeltproject.org/about.html
         new()
         {
-            Name = "GDELT DOC 2.0 discovery (proposed)",
+            Name = "GDELT DOC 2.0 discovery",
             CanonicalDomain = "api.gdeltproject.org",
             CountryCode = null,
             Region = null,
             PrimaryLanguage = "en",
-            SourceType = SourceType.Wire,
-            LicenceStatus = LicenceStatus.Proposed,
+            SourceType = SourceType.Aggregator,
+            LicenceStatus = LicenceStatus.Approved,
             ContentUsageStatus = ContentUsageStatus.MetadataOnly,
-            AttributionRequirements = "Discovery metadata only; original publisher rights still apply",
-            Enabled = false,
+            AttributionRequirements =
+                "Cite the GDELT Project and link https://www.gdeltproject.org/. Discovery metadata/URLs only. " +
+                "Original publisher rights still apply — do not treat GDELT hits as republish rights for " +
+                "headlines/bodies/images. Pipeline must still require each publisher domain to be approved.",
+            Enabled = true,
             WebsiteUrl = "https://www.gdeltproject.org"
         }
     ];

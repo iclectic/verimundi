@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../../shared/models/news_labels.dart';
 import '../../../shared/models/news_models.dart';
 import '../../../shared/providers/app_providers.dart';
-import '../../../shared/widgets/status_pill.dart';
+import '../data/country_geojson.dart';
+import 'choropleth_map.dart';
+import 'country_detail_panel.dart';
 
-/// Interactive world overview. Full country polygons need a licensed GeoJSON
-/// asset (see `docs/architecture/map_geojson.md`); this view uses
-/// equirectangular markers, regional severity tint bands, icons+labels
-/// (not colour alone), zoom/pan, and an accessible country list alternative.
+/// Interactive world overview with Natural Earth public-domain polygons
+/// (see `docs/architecture/map_geojson.md`), severity hatch+icons (not colour alone),
+/// zoom/pan, country detail panel, and an accessible country list alternative.
 class WorldMapView extends ConsumerStatefulWidget {
   const WorldMapView({
     required this.countries,
@@ -28,6 +29,9 @@ class WorldMapView extends ConsumerStatefulWidget {
 class _WorldMapViewState extends ConsumerState<WorldMapView> {
   bool _showList = false;
   String? _selectedRegion;
+  String? _selectedCountryCode;
+  late final Future<CountryGeoCollection> _geoFuture =
+      CountryGeoJsonRepository().load();
 
   @override
   Widget build(BuildContext context) {
@@ -61,6 +65,11 @@ class _WorldMapViewState extends ConsumerState<WorldMapView> {
               ),
             ),
           ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Made with Natural Earth (public domain). Severity uses colour, hatch, and icons — not colour alone.',
+          style: Theme.of(context).textTheme.bodySmall,
         ),
         const SizedBox(height: 8),
         Semantics(
@@ -101,22 +110,41 @@ class _WorldMapViewState extends ConsumerState<WorldMapView> {
                 : () => setState(() => _selectedRegion = null),
           )
         else
-          _InteractiveChoroplethMap(
-            countries: filteredCountries,
-            onSelect: (country) => _openCountrySheet(context, country),
+          FutureBuilder<CountryGeoCollection>(
+            future: _geoFuture,
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return Text(
+                  'Map polygons failed to load. Use Country list. (${snapshot.error})',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                );
+              }
+              if (!snapshot.hasData) {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 48),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              return ChoroplethMap(
+                geo: snapshot.data!,
+                countries: filteredCountries,
+                selectedCode: _selectedCountryCode,
+                onSelect: (country) => _openCountrySheet(context, country),
+              );
+            },
           ),
       ],
     );
   }
 
   void _openCountrySheet(BuildContext context, CountryNewsStatus country) {
+    setState(() => _selectedCountryCode = country.code);
     final countryStories = widget.stories
-        .where((story) => story.countryCodes.contains(country.code))
-        .toList();
-    final underreported = [...countryStories]
-      ..sort((a, b) => b.underreportedScore.compareTo(a.underreportedScore));
-    final positive = countryStories
-        .where((s) => s.tone == Tone.positive)
+        .where(
+          (story) =>
+              story.primaryCountryCode == country.code ||
+              story.countryCodes.contains(country.code),
+        )
         .toList();
 
     showModalBottomSheet<void>(
@@ -124,78 +152,30 @@ class _WorldMapViewState extends ConsumerState<WorldMapView> {
       showDragHandle: true,
       isScrollControlled: true,
       builder: (context) => Padding(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+        padding: EdgeInsets.fromLTRB(
+          20,
+          8,
+          20,
+          24 + MediaQuery.viewInsetsOf(context).bottom,
+        ),
         child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(country.name, style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 4,
-                children: [
-                  SeverityPill(
-                    severity: country.currentSeverity,
-                    reason: 'Highest active severity for ${country.name}',
-                  ),
-                  Chip(label: Text('${country.activeStoryCount} active')),
-                  Chip(label: Text('${country.positiveStoryCount} positive')),
-                  Chip(label: Text(country.region)),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text('Latest update ${country.lastUpdated.toLocal()}'),
-              const SizedBox(height: 16),
-              Text(
-                'Leading developments',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              for (final story in countryStories.take(3))
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(story.headline),
-                  subtitle: Text(story.severityReason),
-                  onTap: () {
-                    Navigator.pop(context);
-                    context.push('/stories/${story.id}');
-                  },
-                ),
-              if (underreported.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text(
-                  'Underreported',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-                Text(underreported.first.headline),
-              ],
-              if (positive.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text(
-                  'Positive developments',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-                Text(positive.first.headline),
-              ],
-              const SizedBox(height: 12),
-              FilledButton.tonal(
-                onPressed: () {
-                  ref.read(storyFilterProvider.notifier).state = ref
-                      .read(storyFilterProvider)
-                      .copyWith(
-                        countryCode: country.code,
-                        region: country.region,
-                      );
-                  Navigator.pop(context);
-                },
-                child: Text('Filter feed to ${country.name}'),
-              ),
-            ],
+          child: CountryDetailPanel(
+            country: country,
+            stories: countryStories,
+            onFilterFeed: () {
+              ref.read(storyFilterProvider.notifier).state = ref
+                  .read(storyFilterProvider)
+                  .copyWith(countryCode: country.code, region: country.region);
+              Navigator.pop(context);
+            },
           ),
         ),
       ),
-    );
+    ).whenComplete(() {
+      if (mounted) {
+        setState(() => _selectedCountryCode = null);
+      }
+    });
   }
 
   static const _regions = [
@@ -223,27 +203,37 @@ class _SeverityLegend extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       label:
-          'Severity legend. Severity is also shown with icons and text labels.',
-      child: Wrap(
-        spacing: 12,
-        runSpacing: 8,
+          'Severity legend. Severity is shown with icons, text labels, map colour, and hatch patterns — not colour alone.',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          for (final severity in Severity.values)
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  _icon(severity),
-                  size: 18,
-                  color: AppSemanticColors.severity(
-                    severity,
-                    Theme.of(context).brightness,
-                  ),
+          Wrap(
+            spacing: 12,
+            runSpacing: 8,
+            children: [
+              for (final severity in Severity.values)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _icon(severity),
+                      size: 18,
+                      color: AppSemanticColors.severity(
+                        severity,
+                        Theme.of(context).brightness,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(severity.label),
+                  ],
                 ),
-                const SizedBox(width: 4),
-                Text(severity.name),
-              ],
-            ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Map polygons also use denser hatch for higher severity.',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
         ],
       ),
     );
@@ -255,163 +245,6 @@ class _SeverityLegend extends StatelessWidget {
     Severity.developing => Icons.update,
     Severity.general => Icons.info_outline,
   };
-}
-
-class _InteractiveChoroplethMap extends StatelessWidget {
-  const _InteractiveChoroplethMap({
-    required this.countries,
-    required this.onSelect,
-  });
-
-  final List<CountryNewsStatus> countries;
-  final ValueChanged<CountryNewsStatus> onSelect;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      label:
-          'Interactive world map with country severity markers. Use country list for an accessible alternative.',
-      child: AspectRatio(
-        aspectRatio: 16 / 9,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: Theme.of(context).colorScheme.outlineVariant,
-            ),
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: InteractiveViewer(
-              minScale: 1,
-              maxScale: 4,
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return CustomPaint(
-                    size: Size(constraints.maxWidth, constraints.maxHeight),
-                    painter: _RegionTintPainter(
-                      countries: countries,
-                      brightness: Theme.of(context).brightness,
-                      outline: Theme.of(context).colorScheme.outlineVariant,
-                    ),
-                    child: Stack(
-                      children: [
-                        for (final country in countries)
-                          Positioned(
-                            left:
-                                (((country.longitude + 180) / 360) *
-                                            constraints.maxWidth -
-                                        18)
-                                    .clamp(0, constraints.maxWidth - 36),
-                            top:
-                                (((90 - country.latitude) / 180) *
-                                            constraints.maxHeight -
-                                        18)
-                                    .clamp(0, constraints.maxHeight - 36),
-                            child: Semantics(
-                              button: true,
-                              label:
-                                  '${country.name}, ${country.currentSeverity.name} severity, ${country.activeStoryCount} active stories, region ${country.region}',
-                              child: IconButton.filledTonal(
-                                tooltip:
-                                    '${country.name}: ${country.currentSeverity.name}, ${country.activeStoryCount} stories',
-                                icon: Icon(
-                                  _severityIcon(country.currentSeverity),
-                                  size: 18,
-                                ),
-                                color: AppSemanticColors.severity(
-                                  country.currentSeverity,
-                                  Theme.of(context).brightness,
-                                ),
-                                onPressed: () => onSelect(country),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  IconData _severityIcon(Severity severity) => switch (severity) {
-    Severity.critical => Icons.warning_amber,
-    Severity.serious => Icons.priority_high,
-    Severity.developing => Icons.update,
-    Severity.general => Icons.info_outline,
-  };
-}
-
-/// Soft regional tint bands as a choropleth stand-in until licensed GeoJSON lands.
-class _RegionTintPainter extends CustomPainter {
-  _RegionTintPainter({
-    required this.countries,
-    required this.brightness,
-    required this.outline,
-  });
-
-  final List<CountryNewsStatus> countries;
-  final Brightness brightness;
-  final Color outline;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final byRegion = <String, Severity>{};
-    for (final country in countries) {
-      final current = byRegion[country.region];
-      if (current == null || country.currentSeverity.index < current.index) {
-        byRegion[country.region] = country.currentSeverity;
-      }
-    }
-
-    // Approximate longitude bands for high-level regions.
-    final bands = <String, (double, double)>{
-      'North America': (-170, -50),
-      'Latin America and the Caribbean': (-90, -30),
-      'Europe': (-15, 40),
-      'Africa': (-20, 55),
-      'Middle East': (25, 65),
-      'Asia': (60, 150),
-      'Oceania': (110, 180),
-    };
-
-    for (final entry in bands.entries) {
-      final severity = byRegion[entry.key] ?? Severity.general;
-      final color = AppSemanticColors.severity(
-        severity,
-        brightness,
-      ).withValues(alpha: 0.18);
-      final left = ((entry.value.$1 + 180) / 360) * size.width;
-      final right = ((entry.value.$2 + 180) / 360) * size.width;
-      final rect = Rect.fromLTRB(
-        left.clamp(0, size.width),
-        size.height * 0.08,
-        right.clamp(0, size.width),
-        size.height * 0.92,
-      );
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(rect, const Radius.circular(12)),
-        Paint()..color = color,
-      );
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(rect, const Radius.circular(12)),
-        Paint()
-          ..color = outline.withValues(alpha: 0.35)
-          ..style = PaintingStyle.stroke,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _RegionTintPainter oldDelegate) =>
-      oldDelegate.countries != countries ||
-      oldDelegate.brightness != brightness;
 }
 
 enum _CountryListSort { severity, name, activeStories }
@@ -561,7 +394,7 @@ class _CountryListAlternativeState extends State<_CountryListAlternative> {
               for (final severity in Severity.values)
                 FilterChip(
                   avatar: Icon(_icon(severity), size: 16),
-                  label: Text(severity.name),
+                  label: Text(severity.label),
                   selected: _severityFilter == severity,
                   onSelected: (selected) => setState(
                     () => _severityFilter = selected ? severity : null,
@@ -629,7 +462,7 @@ class _CountryListAlternativeState extends State<_CountryListAlternative> {
                 ),
                 title: Text(country.name),
                 subtitle: Text(
-                  '${country.region} • ${country.currentSeverity.name} severity • '
+                  '${country.region} • ${country.currentSeverity.label} severity • '
                   '${country.activeStoryCount} active • ${country.positiveStoryCount} positive',
                 ),
                 isThreeLine: true,

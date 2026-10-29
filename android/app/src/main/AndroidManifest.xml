@@ -1,4 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Required for remote-mode API calls (Ask, reports, feeds). Mock-only
+         demos do not need the network at runtime, but release/live tracks do. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="VeriMundi"
         android:name="${applicationName}"

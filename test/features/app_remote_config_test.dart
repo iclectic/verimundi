@@ -41,6 +41,7 @@ void main() {
         'maintenanceMessage': 'Back soon',
         'minimumAppVersion': '1.1.0',
         'ingestion': {'enableRss': false, 'enableGdelt': true},
+        'ai': {'provider': 'openaiCompatible'},
         'disclaimer': 'Read carefully',
       });
 
@@ -49,6 +50,7 @@ void main() {
       expect(config.minimumAppVersion, '1.1.0');
       expect(config.enableRss, isFalse);
       expect(config.enableGdelt, isTrue);
+      expect(config.aiProvider, 'openaiCompatible');
       expect(config.disclaimer, 'Read carefully');
     });
   });

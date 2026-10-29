@@ -23,11 +23,15 @@ public sealed class RssNewsProvider(
         IngestionRequest request,
         CancellationToken cancellationToken = default)
     {
+        // Only approved, enabled feeds with headline+ rights. MetadataOnly / Prohibited skipped.
         var sources = await db.Sources
             .AsNoTracking()
             .Where(s => s.Enabled &&
                         s.LicenceStatus == LicenceStatus.Approved &&
-                        s.FeedUrl != null)
+                        s.FeedUrl != null &&
+                        (s.ContentUsageStatus == ContentUsageStatus.HeadlineAndLink ||
+                         s.ContentUsageStatus == ContentUsageStatus.PermittedExcerpt ||
+                         s.ContentUsageStatus == ContentUsageStatus.FullTextLicensed))
             .ToListAsync(cancellationToken);
 
         var results = new List<IngestedArticle>();
@@ -48,12 +52,17 @@ public sealed class RssNewsProvider(
                         continue;
                     }
 
+                    var excerpt = source.ContentUsageStatus is ContentUsageStatus.PermittedExcerpt
+                        or ContentUsageStatus.FullTextLicensed
+                        ? Truncate(item.Summary?.Text, 400)
+                        : null;
+
                     results.Add(new IngestedArticle(
                         ProviderName: Name,
                         SourceDomain: source.CanonicalDomain,
                         CanonicalUrl: url,
                         Headline: item.Title.Text.Trim(),
-                        PermittedExcerpt: Truncate(item.Summary?.Text, 400),
+                        PermittedExcerpt: excerpt,
                         Author: item.Authors.FirstOrDefault()?.Name,
                         PublishedAt: item.PublishDate == DateTimeOffset.MinValue ? null : item.PublishDate,
                         Language: source.PrimaryLanguage,

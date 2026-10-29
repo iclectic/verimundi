@@ -116,7 +116,10 @@ class RemoteApiException implements Exception {
       );
     }
 
-    if (status == 429 || code == 'rate_limited') {
+    if (status == 429 ||
+        code == 'rate_limited' ||
+        code == 'ask_rate_limited' ||
+        code == 'report_rate_limited') {
       return RemoteApiException(
         kind: RemoteApiErrorKind.rateLimited,
         message: message ?? 'Rate limit exceeded. Please try again later.',

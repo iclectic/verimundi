@@ -16,6 +16,24 @@ jobs:
     defaults:
       run:
         working-directory: backend
+    # Postgres data-plane integration tests (stories/search/Ask/report).
+    # VERIMUNDI_TEST_POSTGRES prefers the service over Testcontainers.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: verimundi
+          POSTGRES_PASSWORD: verimundi
+          POSTGRES_DB: verimundi
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U verimundi -d verimundi"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      VERIMUNDI_TEST_POSTGRES: Host=localhost;Port=5432;Database=verimundi;Username=verimundi;Password=verimundi
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -27,3 +45,24 @@ jobs:
         run: dotnet build --no-restore -c Release
       - name: Test
         run: dotnet test --no-build -c Release --verbosity normal
+
+  # Fails when OpenAPI drifts from backend/contracts/openapi.v1.json unless the
+  # snapshot is intentionally regenerated (acknowledgement of a breaking change).
+  openapi-contract:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Restore
+        run: dotnet restore
+      - name: Verify OpenAPI contract snapshot
+        run: >
+          dotnet test tests/VeriMundi.IntegrationTests
+          --filter FullyQualifiedName~OpenApiContractTests
+          -c Release
+          --verbosity normal

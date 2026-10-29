@@ -9,6 +9,20 @@ void main() {
     );
   });
 
+  test('prod alias plus blank base is misconfigured', () {
+    expect(
+      resolveAppDataMode(appEnv: 'prod', apiBaseUrl: '  '),
+      AppDataMode.misconfigured,
+    );
+  });
+
+  test('production rejects non-http remote URLs', () {
+    expect(
+      resolveAppDataMode(appEnv: 'production', apiBaseUrl: 'not-a-url'),
+      AppDataMode.misconfigured,
+    );
+  });
+
   test('development mock remains available', () {
     expect(
       resolveAppDataMode(appEnv: 'development', apiBaseUrl: 'mock'),
@@ -21,6 +35,16 @@ void main() {
       resolveAppDataMode(
         appEnv: 'staging',
         apiBaseUrl: 'https://api.example.com',
+      ),
+      AppDataMode.remote,
+    );
+  });
+
+  test('production with https remote is allowed', () {
+    expect(
+      resolveAppDataMode(
+        appEnv: 'production',
+        apiBaseUrl: 'https://api.verimundi.example',
       ),
       AppDataMode.remote,
     );

@@ -19,9 +19,15 @@ class AppConstants {
     defaultValue: 'development',
   );
 
-  static bool get isMockApi => apiBaseUrl == 'mock';
+  static bool get isMockApi {
+    final base = apiBaseUrl.trim().toLowerCase();
+    return base.isEmpty || base == 'mock';
+  }
 
-  static bool get isProductionEnv => appEnv.toLowerCase() == 'production';
+  static bool get isProductionEnv {
+    final env = appEnv.trim().toLowerCase();
+    return env == 'production' || env == 'prod';
+  }
 }
 
 class AppSpacing {

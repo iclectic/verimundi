@@ -142,7 +142,18 @@ class WorldScreen extends ConsumerWidget {
                             runSpacing: 4,
                             crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
-                              Text('Page $page'),
+                              Text(
+                                feed.total == 0
+                                    ? 'No results'
+                                    : feed.fromCache
+                                    ? 'Cached page ${feed.page} of ${feed.totalPages} · ${feed.total} ${feed.usedSearchEndpoint ? 'matches' : 'stories'} (not live)'
+                                    : 'Page ${feed.page} of ${feed.totalPages} · ${feed.total} ${feed.usedSearchEndpoint ? 'matches' : 'stories'}',
+                              ),
+                              if (feed.usedSearchEndpoint)
+                                Text(
+                                  'via /v1/search',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
                               TextButton(
                                 onPressed: page <= 1
                                     ? null
@@ -156,9 +167,15 @@ class WorldScreen extends ConsumerWidget {
                                 child: const Text('Previous'),
                               ),
                               TextButton(
-                                onPressed: () =>
-                                    ref.read(feedPageProvider.notifier).state =
-                                        page + 1,
+                                onPressed: !feed.hasMore
+                                    ? null
+                                    : () =>
+                                          ref
+                                                  .read(
+                                                    feedPageProvider.notifier,
+                                                  )
+                                                  .state =
+                                              page + 1,
                                 child: const Text('Next'),
                               ),
                             ],

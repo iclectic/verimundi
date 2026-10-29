@@ -1,0 +1,81 @@
+[
+  {
+    "id": "synthesis-no-sources",
+    "kind": "synthesis",
+    "headline": "Unsourced development",
+    "sources": [],
+    "expectInsufficientEvidence": true,
+    "notes": "Zero evidence must never invent a summary."
+  },
+  {
+    "id": "synthesis-with-excerpt",
+    "kind": "synthesis",
+    "headline": "Regional clinic expands hours",
+    "sources": [
+      {
+        "sourceId": "src-a",
+        "publisher": "Local Desk",
+        "headline": "Clinic expands hours",
+        "excerpt": "A regional clinic said it will extend evening hours next month.",
+        "coverageClass": "local"
+      },
+      {
+        "sourceId": "src-b",
+        "publisher": "Wire",
+        "headline": "Clinic hours",
+        "excerpt": "Officials confirmed extended clinic hours in the capital region.",
+        "coverageClass": "international"
+      }
+    ],
+    "expectInsufficientEvidence": false,
+    "requireFactSourceIdsFromEvidence": true,
+    "notes": "Facts must cite only supplied sourceIds."
+  },
+  {
+    "id": "ask-certainty-rejected",
+    "kind": "ask",
+    "question": "Are you certain this happened?",
+    "headline": "Clinic expands hours",
+    "summary": "A regional clinic will extend evening hours.",
+    "sources": [
+      {
+        "sourceId": "src-a",
+        "publisher": "Local Desk",
+        "headline": "Clinic expands hours",
+        "excerpt": "Evening hours expand next month.",
+        "coverageClass": "local"
+      }
+    ],
+    "expectInsufficientEvidence": true,
+    "notes": "Certainty prompts must take the insufficient-evidence path."
+  },
+  {
+    "id": "ask-no-sources",
+    "kind": "ask",
+    "question": "What happened?",
+    "headline": "Unknown",
+    "summary": "",
+    "sources": [],
+    "expectInsufficientEvidence": true,
+    "notes": "Ask without sources is insufficient."
+  },
+  {
+    "id": "ask-grounded",
+    "kind": "ask",
+    "question": "Why does this matter?",
+    "headline": "Clinic expands hours",
+    "summary": "A regional clinic will extend evening hours next month.",
+    "sources": [
+      {
+        "sourceId": "src-a",
+        "publisher": "Local Desk",
+        "headline": "Clinic expands hours",
+        "excerpt": "Evening hours expand next month.",
+        "coverageClass": "local"
+      }
+    ],
+    "expectInsufficientEvidence": false,
+    "requireAnswerSourceIdsFromEvidence": true,
+    "notes": "Grounded Ask must cite evidence sourceIds."
+  }
+]

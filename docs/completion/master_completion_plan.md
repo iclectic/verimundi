@@ -228,7 +228,7 @@ Working rule: implement sequentially; leave the repository functional after ever
 
 **Acceptance criteria:** Map + accessible list show consistent severity/story counts.
 
-**External blockers:** Suitable GeoJSON licence/asset.
+**External blockers:** ~~Suitable GeoJSON licence/asset~~ — cleared via Natural Earth public-domain 110m Admin-0 (vendored under `assets/geo/` with `LICENSE.md`).
 
 ---
 
@@ -240,6 +240,8 @@ Working rule: implement sequentially; leave the repository functional after ever
 
 **Acceptance criteria:** Debounced remote search; active filter visibility; pagination.
 
+**Status (2026-10-27):** Flutter `RemoteNewsRepository` routes text queries to `GET /v1/search`; browse stays on `/v1/stories`. Search applies category/severity/tone/verification/local-coverage. Feed shows page-of-total from server `total`; Next disabled when `!hasMore`. Filter chips are dismissible and reset page.
+
 ---
 
 ## Phase 10: Resilience, caching and offline behaviour
@@ -249,6 +251,8 @@ Working rule: implement sequentially; leave the repository functional after ever
 **Dependencies:** Phase 7.
 
 **Acceptance criteria:** Offline saved + recent cache usable with age labels; no copyrighted full bodies stored.
+
+**Hardened (2026-10-27):** Envelope cache persists `total`/`page`/`pageSize`; expired rows served offline with explicit “not a live feed” copy; `CacheStatusBanner` always visible when `fromCache` (including fresh); underreported/positive feeds cache + banner; saved rows labelled as local snapshots only.
 
 ---
 
@@ -260,7 +264,9 @@ Working rule: implement sequentially; leave the repository functional after ever
 
 **Dependencies:** Phases 6–7.
 
-**External blockers:** Legal review of privacy policy text before store submission.
+**External blockers:** Legal review of privacy policy text before store submission; production privacy contact email; Play Console Data Safety attestation by a human.
+
+**Hardened (2026-10-27):** Live-path privacy + Data Safety drafts (IP rate-limit, Ask/report UGC, GenAI host path, offline cache); corrections + `abuse_prevention.md`; report reason allowlist; `report_rate_limited`; Flutter privacy notices + mock honesty; legal review still **EXTERNAL**.
 
 ---
 
@@ -270,6 +276,8 @@ Working rule: implement sequentially; leave the repository functional after ever
 
 **Dependencies:** Phases 7–11 for content; can polish mock UX earlier.
 
+**Hardened (2026-10-27):** `NewsLabels` British English enum display; story detail full summary + correction banner + section headers/metrics semantics; Ask privacy copy; filter/map/card/saved human labels; story-detail a11y tests.
+
 ---
 
 ## Phase 13: Testing and observability
@@ -277,6 +285,8 @@ Working rule: implement sequentially; leave the repository functional after ever
 **Objective:** Expand unit/integration/e2e; structured logging/metrics on backend; CI for backend.
 
 **Dependencies:** Phases 1–7.
+
+**Hardened (2026-10-27):** `VeriMundi.Api` meters (HTTP/Ask/reports/rate-limits) + TraceId/RouteGroup request logs; Prometheus asserts API series; `docs/architecture/testing.md` + telemetry doc refresh; Flutter `report_reasons` test. Device e2e / staging URL still **EXTERNAL**.
 
 ---
 
@@ -286,7 +296,9 @@ Working rule: implement sequentially; leave the repository functional after ever
 
 **Dependencies:** Phases 7, 11, 13; signing secrets locally; Android SDK.
 
-**External blockers:** Play Console account, keystore, privacy review, Android SDK in CI.
+**External blockers:** Play Console account, keystore, privacy review, Android SDK in CI / Cloud Agent.
+
+**Hardened without SDK (2026-10-27):** Re-probed blocker; `INTERNET` on main manifest for remote release; signing checklist + CI notes; dual-track Play listing/checklist; Flutter workflow informational SDK probe. **APK/AAB not built** — `ANDROID_HOME` unset.
 
 ---
 
@@ -296,6 +308,8 @@ Working rule: implement sequentially; leave the repository functional after ever
 
 **Dependencies:** Prior phases as available.
 
+**Hardened (2026-10-27):** `docs/portfolio/engineering_evidence.md` refreshed for live-news stack Phases 2/3–14 (sources → Android docs); explicit screenshot/SDK gaps; doc index. Device captures still **EXTERNAL**.
+
 ---
 
 ## Execution status (this run)
@@ -304,20 +318,20 @@ Working rule: implement sequentially; leave the repository functional after ever
 | --- | --- |
 | 0 | **Done** — AGENTS.md, audit, completion docs, tooling baseline green |
 | 1 | **Done** — ASP.NET Core modular monolith + Postgres + `/v1` + OpenAPI |
-| 2 | **Done (fixture path)** — Fixture ingestion live; RSS provider present, off by default; GDELT discovery scaffold gated (`EnableGdelt=false`) |
-| 3 | **Done (initial + proposals)** — Registry + DB seed + approval gating; UN/ReliefWeb/WHO/GDELT rows seeded as **proposed/disabled** with idempotent upsert |
+| 2 | **Done (fixture + live RSS/GDELT path)** — Fixture ingestion; RSS for **approved** feeds (`EnableRss` on in Development); GDELT DOC ArtList MetadataOnly discovery implemented behind `EnableGdelt` |
+| 3 | **Done (terms-reviewed registry)** — UN News **approved**/enabled; GDELT **approved** MetadataOnly; ReliefWeb + WHO **restricted** (commercial/terms blocks — no fake clearance); curated seed sync; `docs/sources/gdelt_constraints.md` |
 | 4 | **Done (v1)** — URL/hash dedupe + headline/day/country clustering + independent counts |
 | 5 | **Done (v1)** — Underreported + World Pulse ranker + methodology docs |
-| 6 | **Done (heuristic)** — `IAiSynthesisService` + heuristic provider (no GenAI key required) |
-| 7 | **Done + hardened** — Remote client + `/ready` + `/v1/app/config` + maintenance middleware + Flutter retries (no 503 retry) + maintenance/min-version banners + settings readiness + **typed `RemoteApiException` taxonomy** (maintenance/rate-limit/timeout/offline/server) wired through repository, feeds, Ask, and report |
-| 8 | **Done (v1 + list a11y polish)** — Interactive map + searchable/sortable country list (severity chips, active-only, live counts); GeoJSON choropleth still blocked — see `docs/architecture/map_geojson.md` |
-| 9 | **Done (v1)** — Debounced search, richer filters, active chips, empty state, page controls; **empty-state polish** distinguishes no clusters / filtered out / mode empty / end of pages |
-| 10 | **Done (v1)** — Drift feed metadata cache with fresh/stale/expired labels; saved snapshot age notice |
-| 11 | **Done (draft)** — Privacy/Data Safety updated for dual mode; report API + rate limit; legal review still external |
-| 12 | **Done (v1)** — Timeline, save/report actions, British English empty copy, map a11y; shared `FeedEmptyState`; country-list search/sort/severity filters (not colour alone) |
-| 13 | **Done (v1)** — Extra Flutter tests; backend CI; request logging; docker-compose; **ops auth gate**; **ingestion metrics** + optional **Prometheus `/metrics`** (`Telemetry:EnablePrometheus`) |
-| 14 | **Blocked externally** — No Android SDK/`ANDROID_HOME`; probe via `scripts/check_android_sdk.sh` |
-| 15 | **Done (docs)** — `docs/portfolio/engineering_evidence.md` refreshed for ops-auth/metrics/telemetry continue work (screenshots still need a device/SDK host) |
+| 6 | **Done (heuristic + optional GenAI)** — `IAiSynthesisService`; heuristic default; OpenAI-compatible provider via `Ai:ApiKey`/`OPENAI_API_KEY`; grounded JSON + Ask rate limit; eval fixtures |
+| 7 | **Done + Phase 7 polish** — Remote client; production never silent-mock (incl. `prod`/blank/non-http guards); `/v1/app/config` + `ai.provider`; Ask uncertainty + `ask_rate_limited`; feed `page`/`pageSize` wired to API; typed remote errors |
+| 8 | **Done (choropleth)** — Natural Earth **public-domain** 110m polygons vendored; severity fill+hatch+icons (not colour alone); country detail panel; list a11y retained — `docs/architecture/map_geojson.md` |
+| 9 | **Done (hardened)** — Debounced discovery; Flutter uses `/v1/search` when query set; dismissible filter chips; server totals drive pagination; empty/error paths retained |
+| 10 | **Done (hardened)** — Drift feed envelope cache (totals/page); serve expired offline with explicit non-live labels; banner always when fromCache; underreported/positive cache paths; saved snapshot honesty |
+| 11 | **Done (hardened draft)** — Live-path privacy/Data Safety drafts; corrections + abuse docs; report allowlist + `report_rate_limited`; Flutter privacy/mock honesty; **legal review EXTERNAL** |
+| 12 | **Done (hardened)** — Story detail completeness + correction banner; `NewsLabels` British English; section/card/map a11y; Ask/report honesty; story-detail a11y tests |
+| 13 | **Done (hardened)** — Flutter+backend CI; TraceId HTTP logs; ingestion + **API** OTEL meters; Prometheus scrape; testing matrix doc; device e2e / staging URL **EXTERNAL** |
+| 14 | **Blocked externally (docs hardened)** — No `ANDROID_HOME`; signing/CI/Play checklists ready; main manifest `INTERNET`; APK/AAB pending SDK host |
+| 15 | **Done (docs hardened)** — Portfolio evidence covers live-news Phases 2/3–14; screenshot/APK gaps explicit; device/SDK host still **EXTERNAL** |
 | §26+ | Blocked on complete brief — notifications not invented |
 
 ### Post–PR #1 continue milestone (live-path hardening)
@@ -421,17 +435,61 @@ Working rule: implement sequentially; leave the repository functional after ever
 1. `cursor/verimundi-live-path-hardening-b049` (already pushed @ `ed7bb4d`) merge into `main`, and/or  
 2. `cursor/verimundi-admin-ops-auth-b049` (dirty: ops auth + runbook + metrics + Prometheus).
 
+### Continue slice: live news source terms review (2026-10-26)
+
+**Chosen:** Phase 2/3 — approve only where posted terms clearly allow VeriMundi metadata/RSS use; enable RSS for approved; GDELT MetadataOnly with constraints; no fake legal approval.
+
+**Delivered on `cursor/verimundi-live-news-sources-b049` (no commit unless authorised):**
+
+- UN News **approved** + enabled (RSS excerpt + attribution + advise-UN ops note)
+- GDELT DOC ArtList **approved** MetadataOnly + live provider (publisher domains still gated)
+- ReliefWeb + WHO **restricted** (commercial / written-permission blocks)
+- Registry + seed sync + `gdelt_constraints.md` + unit tests
+
+### Continue slice: Phase 6 grounded GenAI (2026-10-27)
+
+**Chosen:** Optional OpenAI-compatible `IAiSynthesisService` behind env secrets; heuristic default; grounded Ask + synthesis; Ask rate limit; ai_safety + eval fixtures.
+
+**Delivered (same dirty branch `cursor/verimundi-live-news-sources-b049`, no commit unless authorised):**
+
+- `AiOptions` + `OpenAiCompatibleSynthesisService` + `GroundedAiValidator`
+- DI selects GenAI when `Ai:ApiKey` / `OPENAI_API_KEY` set; else heuristic
+- `AskRateLimitMiddleware` (`ask_rate_limited`); `/v1/app/config` → `ai.provider`
+- Fixtures `ai_eval_cases.json` + unit tests; Flutter reads `aiProvider` (no secrets)
+
+### Continue slice: Phase 7 live Flutter polish (2026-10-27)
+
+**Chosen:** Close remaining Phase 7 gaps on the dirty live-news branch (no commit).
+
+**Already done earlier (not reimplemented):** Dio `RemoteNewsRepository`, production+mock misconfig throw, retries, `RemoteApiException`, demo banner gating, settings data-mode copy, basic remote parse tests.
+
+**Shipped this polish:** production URL/env guards; `ai.provider` in settings AI tile; Ask uncertainty + longer timeout + client question validation; `ask_rate_limited` mapping; feed `page`/`pageSize` to `/v1/stories`; tests.
+
+### Continue slice: Phase 8 world map choropleth (2026-10-27)
+
+**Chosen:** Licence-safe GeoJSON choropleth (Natural Earth public domain) + country detail panel; severity not colour-alone; keep list a11y.
+
+**Delivered (dirty `cursor/verimundi-live-news-sources-b049`, no commit):** `assets/geo/countries_110m.geojson` + `LICENSE.md`; `ChoroplethMap` hatch+icons; `CountryDetailPanel`; docs/plan updates.
+
+### Continue slice: Phase 9 search/filters/discovery (2026-10-27)
+
+**Chosen:** Harden real search against `/v1/search`, filters, debounce, empty/error/pagination.
+
+**Delivered (same dirty branch, no commit):** Flutter routes query → `/v1/search`; backend search filters completed; `StoryPageResult` + feed totals; dismissible chips; page reset on filter change; Next gated by `hasMore`.
+
 **Still external / Tubo decisions (required before more product work):**
 
 | Decision | Blocks |
 | --- | --- |
-| Approve / restrict / reject proposed sources (UN, ReliefWeb, WHO, GDELT, …) | Live RSS/GDELT enablement |
-| Production GenAI key + cost controls | Non-heuristic synthesis |
+| Written OCHA/ReliefWeb clearance for product aggregation | ReliefWeb RSS enablement |
+| Written WHO authorisation for commercial product use | WHO RSS enablement |
+| Production opt-in (`EnableRss`/`EnableGdelt`) + advise UN (`unnews@un.org`) | Production live feeds |
+| Production GenAI key + spend/cost controls | Non-heuristic production synthesis |
 | Privacy / Play Data Safety legal sign-off | Store submission honesty |
 | Product licence for public distribution | README / release posture |
 | Full brief §26+ (notifications) | Push product — **do not invent** |
 | Android SDK + signing host | Phase 14 APK/AAB verification |
-| Licence-safe GeoJSON | True choropleth map |
+| ~~Licence-safe GeoJSON~~ | Cleared — Natural Earth PD 110m vendored |
 | Staging API base URL | Executing the smoke runbook end-to-end |
 | OTLP NuGet advisory clearance | Optional OTLP exporter (Prometheus scrape already available) |
 | Commit/push authorisation for dirty ops-auth stack | PR of current work |

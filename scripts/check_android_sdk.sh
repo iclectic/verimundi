@@ -5,10 +5,13 @@ set -euo pipefail
 
 echo "VeriMundi Android SDK check"
 echo "---------------------------"
+echo "Docs: docs/release/android_sdk_blocker.md"
+echo "      docs/release/android_signing_checklist.md"
+echo "      docs/release/android_ci_notes.md"
 
 if [[ -z "${ANDROID_HOME:-}" && -z "${ANDROID_SDK_ROOT:-}" ]]; then
   echo "BLOCKED: ANDROID_HOME / ANDROID_SDK_ROOT not set."
-  echo "See docs/release/android_sdk_blocker.md"
+  echo "CI note: Flutter workflow does not build APK/AAB without an SDK runner."
   exit 1
 fi
 
@@ -25,8 +28,14 @@ if ! command -v flutter >/dev/null 2>&1; then
   exit 1
 fi
 
-echo "Running: flutter doctor --android-licenses (non-interactive probe via doctor)"
+echo "Running: flutter doctor (Android section)"
 flutter doctor -v | sed -n '1,80p' || true
+
+if [[ -f android/key.properties ]]; then
+  echo "Signing: android/key.properties present (do not commit)."
+else
+  echo "Signing: android/key.properties missing — release Gradle tasks will fail until created."
+fi
 
 if flutter build apk --debug -t lib/main.dart --dry-run 2>/dev/null; then
   echo "OK: flutter reports an Android build toolchain."
@@ -41,5 +50,4 @@ fi
 
 echo "BLOCKED: Android toolchain not ready for APK/AAB builds."
 echo "Install SDK, accept licences, then re-run this script."
-echo "Docs: docs/release/android_sdk_blocker.md"
 exit 1

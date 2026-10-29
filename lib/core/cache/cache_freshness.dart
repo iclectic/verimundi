@@ -16,6 +16,9 @@ class CachePolicy {
     return CacheFreshness.expired;
   }
 
+  /// Age label for a cached snapshot that is still being treated as current
+  /// metadata (e.g. debug). Prefer [offlineLabel] whenever the UI is serving
+  /// cache because the network failed — never present old as live.
   String label(DateTime fetchedAt, {DateTime? now}) {
     final when = now ?? DateTime.now();
     final age = when.difference(fetchedAt);
@@ -27,6 +30,22 @@ class CachePolicy {
         'Last updated $ageText ago (cached, still usable)',
       CacheFreshness.expired =>
         'Cached snapshot from $ageText ago — may be out of date',
+    };
+  }
+
+  /// Explicit offline / fallback copy. Always states the data is not live.
+  String offlineLabel(DateTime fetchedAt, {DateTime? now}) {
+    final when = now ?? DateTime.now();
+    final age = when.difference(fetchedAt);
+    final freshness = evaluate(fetchedAt, now: when);
+    final ageText = _formatAge(age);
+    return switch (freshness) {
+      CacheFreshness.fresh =>
+        'Offline — showing cached copy from $ageText ago (not a live feed)',
+      CacheFreshness.staleButUsable =>
+        'Offline — last updated $ageText ago (cached, still usable — not live)',
+      CacheFreshness.expired =>
+        'Offline — expired snapshot from $ageText ago. May be out of date. Not a live feed.',
     };
   }
 

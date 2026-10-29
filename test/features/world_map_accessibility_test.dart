@@ -65,7 +65,7 @@ void main() {
   ) async {
     await pumpMap(tester);
 
-    expect(find.text('critical'), findsWidgets);
+    expect(find.text('Critical'), findsWidgets);
     expect(find.text('Country list'), findsOneWidget);
     await tester.tap(find.text('Country list'));
     await tester.pumpAndSettle();
@@ -130,14 +130,14 @@ void main() {
     await tester.tap(find.text('Country list'));
     await tester.pumpAndSettle();
 
-    // Severity chip labelled "critical" (also appears in legend); tap the chip.
-    final criticalChips = find.widgetWithText(FilterChip, 'critical');
+    // Severity chip labelled "Critical" (also appears in legend); tap the chip.
+    final criticalChips = find.widgetWithText(FilterChip, 'Critical');
     expect(criticalChips, findsWidgets);
     await tester.tap(criticalChips.last);
     await tester.pumpAndSettle();
 
     expect(find.text('Japan'), findsOneWidget);
     expect(find.text('Nigeria'), findsNothing);
-    expect(find.textContaining('critical severity'), findsWidgets);
+    expect(find.textContaining('Critical severity'), findsWidgets);
   });
 }

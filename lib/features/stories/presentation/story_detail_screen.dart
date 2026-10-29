@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/constants/report_reasons.dart';
 import '../../../core/network/remote_api_exception.dart';
 import '../../../core/utils/date_formatters.dart';
+import '../../../shared/models/news_labels.dart';
 import '../../../shared/models/news_models.dart';
 import '../../../shared/providers/app_providers.dart';
 import '../../../shared/widgets/async_value_view.dart';
 import '../../../shared/widgets/app_status_banners.dart';
 import '../../../shared/widgets/status_pill.dart';
-import '../data/remote_news_repository.dart';
 
 class StoryDetailScreen extends ConsumerStatefulWidget {
   const StoryDetailScreen({required this.storyId, super.key});
@@ -72,6 +73,9 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
           if (story == null) {
             return const Center(child: Text('Story not found.'));
           }
+          final showFullSummary =
+              story.fullSummary.trim().isNotEmpty &&
+              story.fullSummary.trim() != story.shortSummary.trim();
           return ListView(
             padding: const EdgeInsets.only(bottom: 24),
             children: [
@@ -83,9 +87,12 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        story.headline,
-                        style: Theme.of(context).textTheme.headlineSmall,
+                      Semantics(
+                        header: true,
+                        child: Text(
+                          story.headline,
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Wrap(
@@ -97,15 +104,47 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
                             reason: story.severityReason,
                           ),
                           TonePill(tone: story.tone),
-                          Chip(label: Text(story.verificationStatus.name)),
-                          Chip(label: Text(story.category.name)),
+                          Semantics(
+                            label:
+                                'Verification ${story.verificationStatus.label}',
+                            child: Chip(
+                              label: Text(story.verificationStatus.label),
+                            ),
+                          ),
+                          Semantics(
+                            label: 'Category ${story.category.label}',
+                            child: Chip(label: Text(story.category.label)),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 8),
                       Text(
                         '${story.primaryCountryCode} • ${story.region} • first published ${DateFormatters.compact(story.firstPublishedAt)} • updated ${DateFormatters.compact(story.lastUpdatedAt)}',
                       ),
-                      const SizedBox(height: 24),
+                      if (story.correctionNotice != null) ...[
+                        const SizedBox(height: 16),
+                        Semantics(
+                          liveRegion: true,
+                          label: 'Correction notice: ${story.correctionNotice}',
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(12),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.tertiaryContainer,
+                            child: Text(
+                              'Correction: ${story.correctionNotice}'
+                              '${story.correctedAt != null ? ' (recorded ${DateFormatters.compact(story.correctedAt!)})' : ''}',
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onTertiaryContainer,
+                                  ),
+                            ),
+                          ),
+                        ),
+                      ],
                       _Section(
                         title: 'Timeline',
                         icon: Icons.timeline,
@@ -146,6 +185,15 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(story.shortSummary),
+                            if (showFullSummary) ...[
+                              const SizedBox(height: 12),
+                              Text(
+                                'Full summary',
+                                style: Theme.of(context).textTheme.titleSmall,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(story.fullSummary),
+                            ],
                             const SizedBox(height: 12),
                             Text(
                               'Why this matters',
@@ -159,13 +207,6 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
                                   : 'AI-assisted summary grounded in listed sources. Confidence ${(story.confidenceScore * 100).toStringAsFixed(0)}%. Last generated ${DateFormatters.compact(story.lastUpdatedAt)}.',
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
-                            if (story.correctionNotice != null) ...[
-                              const SizedBox(height: 8),
-                              Text(
-                                'Correction: ${story.correctionNotice}',
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                            ],
                             if (story.verificationStatus ==
                                 VerificationStatus.insufficientEvidence)
                               const Padding(
@@ -177,23 +218,26 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
                           ],
                         ),
                       ),
-                      _Section(
-                        title: 'Confirmed facts',
-                        icon: Icons.fact_check,
-                        child: Column(
-                          children: [
-                            for (final fact in story.confirmedFacts)
-                              ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                leading: const Icon(Icons.check_circle_outline),
-                                title: Text(fact.text),
-                                subtitle: Text(
-                                  'Sources: ${fact.sourceIds.join(', ')}',
+                      if (story.confirmedFacts.isNotEmpty)
+                        _Section(
+                          title: 'Confirmed facts',
+                          icon: Icons.fact_check,
+                          child: Column(
+                            children: [
+                              for (final fact in story.confirmedFacts)
+                                ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  leading: const Icon(
+                                    Icons.check_circle_outline,
+                                  ),
+                                  title: Text(fact.text),
+                                  subtitle: Text(
+                                    'Sources: ${fact.sourceIds.join(', ')}',
+                                  ),
                                 ),
-                              ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
                       if (story.disputedClaims.isNotEmpty)
                         _Section(
                           title: 'Disputed or conflicting claims',
@@ -214,20 +258,21 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
                             ],
                           ),
                         ),
-                      _Section(
-                        title: 'What remains uncertain',
-                        icon: Icons.help_outline,
-                        child: Column(
-                          children: [
-                            for (final uncertainty in story.uncertainties)
-                              ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                leading: const Icon(Icons.question_mark),
-                                title: Text(uncertainty),
-                              ),
-                          ],
+                      if (story.uncertainties.isNotEmpty)
+                        _Section(
+                          title: 'What remains uncertain',
+                          icon: Icons.help_outline,
+                          child: Column(
+                            children: [
+                              for (final uncertainty in story.uncertainties)
+                                ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  leading: const Icon(Icons.question_mark),
+                                  title: Text(uncertainty),
+                                ),
+                            ],
+                          ),
                         ),
-                      ),
                       _Section(
                         title: 'Coverage comparison',
                         icon: Icons.compare_arrows,
@@ -257,6 +302,13 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
                                 0,
                               ),
                             ),
+                            if (story.tone == Tone.positive ||
+                                story.positiveImpactScore > 0)
+                              _Metric(
+                                label: 'Positive impact score',
+                                value: story.positiveImpactScore
+                                    .toStringAsFixed(0),
+                              ),
                           ],
                         ),
                       ),
@@ -278,21 +330,26 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
                         child: Column(
                           children: [
                             for (final source in story.sourceArticles)
-                              ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                title: Text(source.name),
-                                subtitle: Text(
-                                  '${source.headline}\n${source.countryCode} • ${source.coverageLevel} • ${source.credibilityStatus.name} metadata • ${DateFormatters.compact(source.publishedAt)}',
-                                ),
-                                trailing: const Icon(Icons.open_in_new),
-                                onTap: () =>
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          'External source: ${source.articleUrl}',
+                              Semantics(
+                                button: true,
+                                label:
+                                    'Open external source ${source.name}. ${source.headline}. ${source.credibilityStatus.label} metadata.',
+                                child: ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  title: Text(source.name),
+                                  subtitle: Text(
+                                    '${source.headline}\n${source.countryCode} • ${source.coverageLevel} • ${source.credibilityStatus.label} metadata • ${DateFormatters.compact(source.publishedAt)}',
+                                  ),
+                                  trailing: const Icon(Icons.open_in_new),
+                                  onTap: () => ScaffoldMessenger.of(context)
+                                      .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'External source: ${source.articleUrl}',
+                                          ),
                                         ),
                                       ),
-                                    ),
+                                ),
                               ),
                           ],
                         ),
@@ -326,16 +383,11 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
   }
 
   Future<void> _showReportDialog(BuildContext context) async {
-    const reasons = [
-      'Incorrect summary',
-      'Unsupported claim',
-      'Outdated information',
-      'Misleading classification',
-      'Broken source',
-      'Other',
-    ];
+    final reasons = ReportReasons.all;
     var selected = reasons.first;
     final notes = TextEditingController();
+    final interaction = ref.read(storyInteractionProvider);
+    final submitsRemotely = interaction.submitsRemotely;
     final submitted = await showDialog<bool>(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -344,7 +396,15 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text(
+                  submitsRemotely
+                      ? 'Your reason and optional details are sent to the VeriMundi API for editorial follow-up. Do not include names, contact details, or other personal data you do not wish to share.'
+                      : 'Demo mode: this report stays on your device for this session and is not sent to a server. Do not include personal data.',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(height: 12),
                 DropdownMenu<String>(
                   initialSelection: selected,
                   label: const Text('Reason'),
@@ -362,7 +422,7 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
                 TextField(
                   controller: notes,
                   maxLines: 3,
-                  maxLength: 500,
+                  maxLength: ReportReasons.maxDetailsLength,
                   decoration: const InputDecoration(
                     labelText: 'Optional details',
                     border: OutlineInputBorder(),
@@ -387,22 +447,27 @@ class _StoryDetailScreenState extends ConsumerState<StoryDetailScreen> {
     final detailText = notes.text.trim();
     notes.dispose();
     if (submitted == true && context.mounted) {
-      final repository = ref.read(newsRepositoryProvider);
-      var reportMessage =
-          'Thank you. Reports help VeriMundi correct summaries and classifications.';
-      if (repository is RemoteNewsRepository) {
+      late final String reportMessage;
+      if (submitsRemotely) {
         try {
-          await repository.reportStory(
+          await interaction.reportStory(
             widget.storyId,
             reason: selected,
             details: detailText,
           );
+          reportMessage =
+              'Thank you. Your report was received for editorial follow-up.';
         } on RemoteApiException catch (error) {
           reportMessage = '${error.title}: ${error.message}';
-        } catch (_) {
-          reportMessage =
-              'Could not reach the server. Your note was not submitted — try again later.';
         }
+      } else {
+        await interaction.reportStory(
+          widget.storyId,
+          reason: selected,
+          details: detailText,
+        );
+        reportMessage =
+            'Demo mode: report noted locally only (not submitted to a server).';
       }
       if (context.mounted) {
         ScaffoldMessenger.of(
@@ -431,12 +496,20 @@ class _Section extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(icon),
-              const SizedBox(width: 8),
-              Text(title, style: Theme.of(context).textTheme.titleLarge),
-            ],
+          Semantics(
+            header: true,
+            child: Row(
+              children: [
+                Icon(icon),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 8),
           child,
@@ -454,17 +527,20 @@ class _Metric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 160,
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label),
-              Text(value, style: Theme.of(context).textTheme.headlineSmall),
-            ],
+    return Semantics(
+      label: '$label: $value',
+      child: SizedBox(
+        width: 160,
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label),
+                Text(value, style: Theme.of(context).textTheme.headlineSmall),
+              ],
+            ),
           ),
         ),
       ),
@@ -493,11 +569,19 @@ class _QuestionBox extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text(
+            isDemoContent
+                ? 'Questions stay on this device in demo mode and are answered from the listed fictional sources.'
+                : 'Questions are sent to the VeriMundi API and answered only from linked source evidence. Do not include personal data.',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 8),
           TextField(
             controller: controller,
+            maxLength: 500,
             decoration: const InputDecoration(
               labelText: 'Question',
-              hintText: 'What is still uncertain?',
+              hintText: 'What remains uncertain?',
               border: OutlineInputBorder(),
             ),
             onSubmitted: (_) => onAsk(),
@@ -511,24 +595,49 @@ class _QuestionBox extends StatelessWidget {
           if (answer != null) ...[
             const SizedBox(height: 12),
             answer!.when(
-              data: (data) => Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'AI-generated response',
-                        style: Theme.of(context).textTheme.titleSmall,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(data.answer),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Confidence ${(data.confidenceScore * 100).toStringAsFixed(0)}% • Sources: ${data.sourceIds.isEmpty ? 'insufficient evidence' : data.sourceIds.join(', ')}',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
+              data: (data) => Semantics(
+                liveRegion: true,
+                label: data.insufficientEvidence
+                    ? 'Ask answer: insufficient evidence. ${data.answer}'
+                    : 'Ask answer. ${data.answer}',
+                child: Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'AI-generated response',
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                        const SizedBox(height: 8),
+                        if (data.insufficientEvidence)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Text(
+                              'Insufficient evidence',
+                              style: Theme.of(context).textTheme.labelLarge
+                                  ?.copyWith(
+                                    color: Theme.of(context).colorScheme.error,
+                                  ),
+                            ),
+                          ),
+                        Text(data.answer),
+                        if (data.uncertainty != null &&
+                            data.uncertainty!.trim().isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            data.uncertainty!,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                        const SizedBox(height: 8),
+                        Text(
+                          'Confidence ${(data.confidenceScore * 100).toStringAsFixed(0)}% • Sources: ${data.sourceIds.isEmpty ? 'insufficient evidence' : data.sourceIds.join(', ')}',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

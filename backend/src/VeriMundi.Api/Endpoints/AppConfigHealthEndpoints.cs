@@ -1,3 +1,5 @@
+using VeriMundi.Api.Contracts;
+using VeriMundi.Api.OpenApi;
 using VeriMundi.Api.Options;
 using VeriMundi.Infrastructure.Persistence;
 
@@ -47,26 +49,21 @@ public static class AppConfigHealthEndpoints
             IConfiguration configuration) =>
         {
             var appOptions = options.Value;
-            return Results.Ok(new
-            {
-                environment = env.EnvironmentName,
-                maintenanceMode = appOptions.MaintenanceMode,
-                maintenanceMessage = appOptions.MaintenanceMessage,
-                minimumAppVersion = appOptions.MinimumAppVersion,
-                ingestion = new
-                {
-                    enableRss = string.Equals(configuration["Ingestion:EnableRss"], "true", StringComparison.OrdinalIgnoreCase),
-                    enableGdelt = string.Equals(configuration["Ingestion:EnableGdelt"], "true", StringComparison.OrdinalIgnoreCase)
-                },
-                ai = new
-                {
-                    // Never expose keys — only which backend path is active.
-                    provider = aiOptions.Value.EffectiveProvider
-                },
-                disclaimer =
-                    "VeriMundi is designed to broaden regional and source visibility. Story selection, classification and AI-generated summaries remain imperfect and should be considered alongside the original reporting."
-            });
-        });
+            return Results.Ok(new AppConfigDto(
+                env.EnvironmentName,
+                appOptions.MaintenanceMode,
+                appOptions.MaintenanceMessage,
+                appOptions.MinimumAppVersion,
+                new AppConfigIngestionDto(
+                    string.Equals(configuration["Ingestion:EnableRss"], "true", StringComparison.OrdinalIgnoreCase),
+                    string.Equals(configuration["Ingestion:EnableGdelt"], "true", StringComparison.OrdinalIgnoreCase)),
+                // Never expose keys — only which backend path is active.
+                new AppConfigAiDto(aiOptions.Value.EffectiveProvider),
+                "VeriMundi is designed to broaden regional and source visibility. Story selection, classification and AI-generated summaries remain imperfect and should be considered alongside the original reporting."));
+        })
+        .WithName("GetAppConfig")
+        .WithTags("AppConfig")
+        .WithAppConfigContract();
 
         return api;
     }

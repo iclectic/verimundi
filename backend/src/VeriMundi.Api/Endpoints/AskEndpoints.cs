@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using VeriMundi.Api.Contracts;
+using VeriMundi.Api.OpenApi;
 using VeriMundi.Api.Telemetry;
 using VeriMundi.Application.Abstractions;
 using VeriMundi.Domain;
@@ -67,7 +68,10 @@ public static class AskEndpoints
                 result.SourceIds,
                 result.Uncertainty,
                 result.GeneratedAt));
-        });
+        })
+        .WithName("AskStoryQuestion")
+        .WithTags("Ask")
+        .WithAskContract();
 
         return api;
     }

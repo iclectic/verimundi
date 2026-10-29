@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using VeriMundi.Api.Contracts;
 using VeriMundi.Api.Mapping;
+using VeriMundi.Api.OpenApi;
 using VeriMundi.Application.Scoring;
 using VeriMundi.Domain;
 using VeriMundi.Domain.Entities;
@@ -85,7 +86,10 @@ public static class StoriesEndpoints
             var total = ranked.Count;
             var pageItems = ranked.Skip((page - 1) * pageSize).Take(pageSize).Select(s => StoryMapper.ToDto(s)).ToList();
             return Results.Ok(new PagedResponse<StoryDto>(pageItems, page, pageSize, total));
-        });
+        })
+        .WithName("ListStories")
+        .WithTags("Stories")
+        .WithStoryPageContract();
 
         api.MapGet("/stories/underreported", async (VeriMundiDbContext db, int page = 1, int pageSize = 20) =>
         {
@@ -129,7 +133,10 @@ public static class StoriesEndpoints
             return story is null
                 ? Results.NotFound(new ApiError("story_not_found", "Story was not found."))
                 : Results.Ok(StoryMapper.ToDto(story));
-        });
+        })
+        .WithName("GetStoryById")
+        .WithTags("Stories")
+        .WithStoryItemContract();
 
         api.MapGet("/stories/{storyId}/sources", async (string storyId, VeriMundiDbContext db) =>
         {

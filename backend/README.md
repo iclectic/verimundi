@@ -21,6 +21,7 @@ dotnet run --project src/VeriMundi.Api --urls http://0.0.0.0:5080
 ```
 
 Swagger (Development): `http://localhost:5080/swagger`  
+OpenAPI snapshot (CI-locked): `backend/contracts/openapi.v1.json` — regenerate with `./scripts/export-openapi.sh` after intentional contract changes  
 Health: `http://localhost:5080/health`  
 Ready: `http://localhost:5080/ready`  
 App config: `http://localhost:5080/v1/app/config`  
@@ -36,6 +37,8 @@ ReliefWeb / WHO stay **restricted**. See `docs/sources/source_registry.md`.
 ```bash
 dotnet test
 ```
+
+OpenAPI contract tests compare the live Swagger document to `contracts/openapi.v1.json` (stories / search / Ask / app config schemas). Unintended diffs fail CI; intentional breaks require regenerating the snapshot (`UPDATE_OPENAPI_SNAPSHOT=1` or `./scripts/export-openapi.sh`) and committing it.
 
 ## Flutter remote mode
 
